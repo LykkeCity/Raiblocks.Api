@@ -33,9 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="4.0.0" />
+    <PackageReference Include="Lykke.Common" Version="4.2.0" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.1.0" />
     <PackageReference Include="Lykke.Logs" Version="3.5.1" />
+    <PackageReference Include="Lykke.Service.BlockchainApi.Contract" Version="7.0.1" />
     <PackageReference Include="Lykke.Service.Session" Version="1.0.33" />
     <PackageReference Include="Lykke.SettingsReader" Version="1.0.45" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.1" />
@@ -56,6 +57,10 @@
     <ProjectReference Include="..\Lykke.Service.RaiblocksApi.AzureRepositories\Lykke.Service.RaiblocksApi.AzureRepositories.csproj" />
     <ProjectReference Include="..\Lykke.Service.RaiblocksApi.Core\Lykke.Service.RaiblocksApi.Core.csproj" />
     <ProjectReference Include="..\Lykke.Service.RaiblocksApi.Services\Lykke.Service.RaiblocksApi.Services.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Models\" />
   </ItemGroup>
 
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">

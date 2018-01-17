@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.RaiblocksApi.Core.Services;
-using Lykke.Service.RaiblocksApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
