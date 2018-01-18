@@ -9,6 +9,7 @@ using System.Text;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
+    [Route("api/[controller]")]
     public class BalancesController : Controller
     {
         /// <summary>
