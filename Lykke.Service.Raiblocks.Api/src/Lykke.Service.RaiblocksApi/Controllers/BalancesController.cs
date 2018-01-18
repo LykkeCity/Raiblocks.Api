@@ -1,18 +1,28 @@
 ﻿using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Balances;
+using Lykke.Service.RaiblocksApi.Core.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
     [Route("api/[controller]")]
     public class BalancesController : Controller
     {
+        private readonly IBlockchainService _blockchainService;
+
+        public BalancesController(IBlockchainService blockchainService)
+        {
+            _blockchainService = blockchainService;
+        }
+
         /// <summary>
         /// Remember the wallet address to observe
         /// </summary>
@@ -22,9 +32,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("AddBalanceObservation")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
-        public IActionResult AddBalanceObservation(string address)
+        public async Task<IActionResult> AddBalanceObservation(string address)
         {
-            throw new NotImplementedException();
+            if (await _blockchainService.AddBalanceObservation(address))
+                return Ok();
+            else
+                return StatusCode((int)HttpStatusCode.Conflict);
         }
 
         /// <summary>

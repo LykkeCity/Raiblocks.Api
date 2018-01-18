@@ -1,6 +1,8 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories;
+using Lykke.Service.RaiblocksApi.Core.Repositories;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Lykke.Service.RaiblocksApi.Core.Settings.ServiceSettings;
 using Lykke.Service.RaiblocksApi.Services;
@@ -45,6 +47,13 @@ namespace Lykke.Service.RaiblocksApi.Modules
 
             builder.RegisterType<ShutdownManager>()
                 .As<IShutdownManager>();
+
+            builder.RegisterType<BalanceObservationRepository>()
+                .As<IBalanceObservationRepository>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+            builder.RegisterType<BlockchainService>()
+                .As<IBlockchainService>();
 
             // TODO: Add your dependencies here
 
