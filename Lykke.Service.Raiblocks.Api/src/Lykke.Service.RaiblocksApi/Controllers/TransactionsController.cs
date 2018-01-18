@@ -1,4 +1,5 @@
-﻿using Lykke.Service.BlockchainApi.Contract.Transactions;
+﻿using Lykke.Common.Api.Contract.Responses;
+using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
@@ -19,7 +20,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpPost]
         [SwaggerOperation("BuildNotSignedTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
         public IActionResult BuildNotSignedTransaction([FromBody] BuildTransactionRequest buildTransactionRequest)
         {
             throw new NotImplementedException();
@@ -33,8 +34,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpPut]
         [SwaggerOperation("RebuildNotSignedTransaction")]
         [ProducesResponseType(typeof(RebuildTransactionResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.NotImplemented)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
         public IActionResult RebuildNotSignedTransaction([FromBody] RebuildTransactionRequest rebuildTransactionRequest)
         {
             throw new NotImplementedException();
@@ -47,22 +48,22 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <returns>Broadcasted transaction response</returns>
         [HttpPost("broadcast")]
         [SwaggerOperation("BroadcastSignedTransaction")]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public IActionResult BroadcastSignedTransaction([FromBody] BroadcastTransactionRequest broadcastTransactionRequest)
         {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Get roadcasted  transaction
+        /// Get broadcasted transaction
         /// </summary>
         /// <param name="operationId">Operation Id</param>
         /// <returns>Broadcasted transaction response</returns>
         [HttpGet("broadcast/{operationId}")]
         [SwaggerOperation("GetBroadcastedTransaction")]
         [ProducesResponseType(typeof(BroadcastedTransactionResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public IActionResult GetBroadcastedTransaction(string operationId)
         {
             throw new NotImplementedException();
@@ -75,8 +76,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <returns>HttpStatusCode</returns>
         [HttpDelete("broadcast/{operationId}")]
         [SwaggerOperation("DeleteBroadcastedTransaction")]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public IActionResult DeleteBroadcastedTransaction(string operationId)
         {
             throw new NotImplementedException();

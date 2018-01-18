@@ -1,4 +1,5 @@
-﻿using Lykke.Service.BlockchainApi.Contract.Transactions;
+﻿using Lykke.Common.Api.Contract.Responses;
+using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
@@ -18,8 +19,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <returns>HttpStatusCode</returns>
         [HttpPost("from/{address}/observation")]
         [SwaggerOperation("AddHistoryObservationFrom")]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public IActionResult AddHistoryObservationFrom(string address)
         {
             throw new NotImplementedException();
@@ -32,8 +33,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <returns>HttpStatusCode</returns>
         [HttpPost("to/{address}/observation")]
         [SwaggerOperation("AddHistoryObservationFrom")]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public IActionResult AddHistoryObservationTo(string address)
         {
             throw new NotImplementedException();

@@ -1,4 +1,5 @@
-﻿using Lykke.Service.BlockchainApi.Contract;
+﻿using Lykke.Common.Api.Contract.Responses;
+using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Balances;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -19,8 +20,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <returns>HttpStatusCode</returns>
         [HttpPost("{address}/observation")]
         [SwaggerOperation("AddBalanceObservation")]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public IActionResult AddBalanceObservation(string address)
         {
             throw new NotImplementedException();
@@ -33,8 +34,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <returns>HttpStatusCode</returns>
         [HttpDelete("{address}/observation")]
         [SwaggerOperation("RemoveBalanceObservation")]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public IActionResult RemoveBalanceObservation(string address)
         {
             throw new NotImplementedException();

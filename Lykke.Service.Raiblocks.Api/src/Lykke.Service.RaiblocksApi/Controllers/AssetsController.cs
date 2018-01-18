@@ -43,7 +43,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet("{assetId}")]
         [SwaggerOperation("GetAsset")]
         [ProducesResponseType(typeof(AssetContract), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IActionResult), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public IActionResult GetAsset(string assetId)
         {
             throw new NotImplementedException();
