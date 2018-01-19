@@ -52,6 +52,13 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .As<IBalanceObservationRepository>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
 
+            builder.RegisterType<AddressBalanceRepository>()
+                .As<IAddressBalanceRepository>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+            builder.RegisterType<AssetService>()
+                .As<IAssetService>();
+
             builder.RegisterType<BlockchainService>()
                 .As<IBlockchainService>();
 

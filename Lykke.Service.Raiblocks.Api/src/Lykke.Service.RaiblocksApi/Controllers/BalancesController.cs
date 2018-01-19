@@ -2,13 +2,10 @@
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Balances;
 using Lykke.Service.RaiblocksApi.Core.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
@@ -17,10 +14,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     public class BalancesController : Controller
     {
         private readonly IBlockchainService _blockchainService;
+        private readonly IAssetService _assetService;
 
-        public BalancesController(IBlockchainService blockchainService)
+        public BalancesController(IBlockchainService blockchainService, IAssetService assetService)
         {
             _blockchainService = blockchainService;
+            _assetService = assetService;
         }
 
         /// <summary>
@@ -66,9 +65,17 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet]
         [SwaggerOperation("GetBalances")]
         [ProducesResponseType(typeof(PaginationResponse<WalletBalanceContract>), (int)HttpStatusCode.OK)]
-        public PaginationResponse<WalletBalanceContract> GetBalances([FromQuery]int take = 100, [FromQuery]string continuation = null)
+        public async Task<PaginationResponse<WalletBalanceContract>> GetBalances([FromQuery]int take = 100, [FromQuery]string continuation = null)
         {
-            throw new NotImplementedException();
+            var balances = await _blockchainService.GetBalances();
+            return PaginationResponse.From(
+                balances.continuation,
+                balances.items.Select(b => new WalletBalanceContract {
+                    Address = b.Address,
+                    Balance = b.Balance, 
+                    AssetId = _assetService.AssetId
+                }).ToArray());
+
         }
 
     }
