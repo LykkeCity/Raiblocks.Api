@@ -11,10 +11,6 @@ namespace Lykke.Service.RaiblocksApi.Services
     {
         private readonly IBalanceObservationRepository _balanceObservationRepository;
 
-        //public BlockchainService()
-        //{
-        //}
-
         public BlockchainService(IBalanceObservationRepository balanceObservationRepository)
         {
             this._balanceObservationRepository = balanceObservationRepository;
@@ -22,7 +18,16 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<bool> AddBalanceObservation(string address)
         {
             return await _balanceObservationRepository.CreateIfNotExistsAsync(address);
-            //return false;
+        }
+
+        public async Task<bool> RemoveBalanceObservation(string address)
+        {
+            return await _balanceObservationRepository.DeleteIfExistAsync(address);
+        }
+
+        public async Task<bool> IsBalanceObserved(string address)
+        {
+            return await _balanceObservationRepository.IsExistAsync(address);
         }
     }
 }

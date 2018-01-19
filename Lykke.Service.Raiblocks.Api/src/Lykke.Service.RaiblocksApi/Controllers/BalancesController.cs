@@ -34,10 +34,10 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> AddBalanceObservation(string address)
         {
-            if (await _blockchainService.AddBalanceObservation(address))
+            if (!await _blockchainService.IsBalanceObserved(address) && await _blockchainService.AddBalanceObservation(address))
                 return Ok();
             else
-                return StatusCode((int)HttpStatusCode.Conflict);
+                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Specified address is already observed"));
         }
 
         /// <summary>
@@ -48,10 +48,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpDelete("{address}/observation")]
         [SwaggerOperation("RemoveBalanceObservation")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public IActionResult RemoveBalanceObservation(string address)
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> RemoveBalanceObservation(string address)
         {
-            throw new NotImplementedException();
+            if (await _blockchainService.IsBalanceObserved(address) && await _blockchainService.RemoveBalanceObservation(address))
+                return Ok();
+            else
+                return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         /// <summary>

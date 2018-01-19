@@ -1,8 +1,8 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
-using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories;
-using Lykke.Service.RaiblocksApi.Core.Repositories;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Balances;
+using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Lykke.Service.RaiblocksApi.Core.Settings.ServiceSettings;
 using Lykke.Service.RaiblocksApi.Services;
