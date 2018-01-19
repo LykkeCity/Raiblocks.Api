@@ -1,9 +1,12 @@
 ﻿using AzureStorage;
 using AzureStorage.Tables;
 using Common.Log;
+using Lykke.AzureStorage.Tables.Paging;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
 using Lykke.SettingsReader;
+using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -45,6 +48,17 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Balances
             var rowKey = GetRowKey(address);
 
             return await _tableStorage.RecordExistsAsync(new BalanceObservation(partitionKey, rowKey));
+        }
+
+        public async Task<(string continuation, IEnumerable<IBalanceObservation> items)> GetAllAsync(int take = 100, string continuation = null)
+        {
+            var pagingInfo = new PagingInfo { ElementCount = take };
+
+            pagingInfo.Decode(continuation);
+            var query = new TableQuery<BalanceObservation>();
+            var items = await _tableStorage.ExecuteQueryWithPaginationAsync(query, pagingInfo);
+
+            return (items.PagingInfo.Encode(), items);
         }
     }
 }
