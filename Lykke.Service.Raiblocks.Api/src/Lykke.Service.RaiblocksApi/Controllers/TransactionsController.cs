@@ -1,6 +1,7 @@
 ﻿using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -15,12 +17,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     public class TransactionsController : Controller
     {
 
-        private readonly ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> _balanceService;
+        private readonly ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> _transactionService;
         private readonly IAssetService _assetService;
 
-        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> balanceService, IAssetService assetService)
+        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> transactionService, IAssetService assetService)
         {
-            _balanceService = balanceService;
+            _transactionService = transactionService;
             _assetService = assetService;
         }
 
@@ -76,9 +78,40 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("GetBroadcastedTransaction")]
         [ProducesResponseType(typeof(BroadcastedTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public IActionResult GetBroadcastedTransaction(string operationId)
+        public async Task<IActionResult> GetBroadcastedTransaction(string operationId)
         {
-            throw new NotImplementedException();
+            var txMeta = await _transactionService.GetTransactionMeta(operationId);
+            if (txMeta != null)
+            {
+                BroadcastedTransactionState state;
+
+                switch (txMeta.State)
+                {
+                    case TransactionState.Confirmed:
+                        state = BroadcastedTransactionState.Completed;
+                        break;
+                    case TransactionState.Failed:
+                    case TransactionState.BlockChainFailed:
+                        state = BroadcastedTransactionState.Failed;
+                        break;
+                    default:
+                        state = BroadcastedTransactionState.InProgress;
+                        break;
+                }
+
+                return Ok(new BroadcastedTransactionResponse
+                {
+                    OperationId = txMeta.OperationId,
+                    State = state,
+                    Timestamp = txMeta.CompleteTimestamp,
+                    Amount = txMeta.Amount,
+                    Fee = "0",
+                    Hash = txMeta.Hash,
+                    Error = txMeta.Error
+                });
+            }
+            else
+                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Specified transaction not found"));
         }
 
         /// <summary>

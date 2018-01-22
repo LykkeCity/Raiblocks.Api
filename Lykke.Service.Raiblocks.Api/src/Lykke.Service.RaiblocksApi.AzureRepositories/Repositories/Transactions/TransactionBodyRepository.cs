@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Transactions
 {
-    public class TransactionBodyRepository : AzureRepository<TransactionBody>, ITransactionMetaRepository<TransactionBody>
+    public class TransactionBodyRepository : AzureRepository<TransactionBody>, ITransactionBodyRepository<TransactionBody>
     {
         public TransactionBodyRepository(IReloadingManager<string> connectionStringManager, ILog log) : base(connectionStringManager, log)
         {

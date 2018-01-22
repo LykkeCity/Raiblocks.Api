@@ -59,5 +59,10 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories
         }
 
         public abstract string DefaultPartitionKey();
+
+        public async Task<T> GetAsync(string id)
+        {
+            return await _tableStorage.GetDataAsync(DefaultPartitionKey(), id);
+        }
     }
 }

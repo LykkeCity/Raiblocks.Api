@@ -3,6 +3,7 @@ using Lykke.Service.RaiblocksApi.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
@@ -19,5 +20,9 @@ namespace Lykke.Service.RaiblocksApi.Services
             _transactionObservationRepository = transactionObservationRepository;
         }
 
+        public async Task<P> GetTransactionMeta(string id)
+        {
+            return await _transactionMetaRepository.GetAsync(id);
+        }
     }
 }

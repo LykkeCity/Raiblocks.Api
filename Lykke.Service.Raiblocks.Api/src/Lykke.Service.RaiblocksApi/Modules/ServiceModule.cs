@@ -78,7 +78,7 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
 
             builder.RegisterType<TransactionBodyRepository>()
-                .As<ITransactionMetaRepository<TransactionBody>>()
+                .As<ITransactionBodyRepository<TransactionBody>>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
 
             builder.RegisterType<TransactionMetaRepository>()
