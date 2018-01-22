@@ -14,51 +14,15 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Balances
 {
-    public class AddressBalanceRepository : IAddressBalanceRepository
+    public class AddressBalanceRepository : AzureRepository<AddressBalance>, IAddressBalanceRepository<AddressBalance>
     {
-        private INoSQLTableStorage<AddressBalance> _tableStorage;
-
-        private static string GetPartitionKey() => nameof(AddressBalance);
-        private static string GetRowKey(string address) => address;
-
-        public AddressBalanceRepository(IReloadingManager<string> connectionStringManager, ILog log)
+        public AddressBalanceRepository(IReloadingManager<string> connectionStringManager, ILog log) : base(connectionStringManager, log)
         {
-            _tableStorage = AzureTableStorage<AddressBalance>.Create(connectionStringManager, "RaiblocksAddressBalance", log);
         }
 
-        public async Task<bool> CreateIfNotExistsAsync(string address, string balance)
+        public override string DefaultPartitionKey()
         {
-            var partitionKey = GetPartitionKey();
-            var rowKey = GetRowKey(address);
-
-            return await _tableStorage.CreateIfNotExistsAsync(new AddressBalance(partitionKey, rowKey, balance));
-        }
-
-        public async Task<bool> DeleteIfExistAsync(string address)
-        {
-            var partitionKey = GetPartitionKey();
-            var rowKey = GetRowKey(address);
-
-            return await _tableStorage.DeleteIfExistAsync(partitionKey, rowKey);
-        }
-
-        public async Task<bool> IsExistAsync(string address)
-        {
-            var partitionKey = GetPartitionKey();
-            var rowKey = GetRowKey(address);
-
-            return await _tableStorage.RecordExistsAsync(new AddressBalance(partitionKey, rowKey));
-        }
-
-        public async Task<(string continuation, IEnumerable<IAddressBalance> items)> GetAllAsync(int take = 100, string continuation = null)
-        {
-            var pagingInfo = new PagingInfo { ElementCount = take };
-
-            pagingInfo.Decode(continuation);
-            var query = new TableQuery<AddressBalance>();
-            var items = await _tableStorage.ExecuteQueryWithPaginationAsync(query, pagingInfo);
-
-            return (items.PagingInfo.Encode(), items);
+            return nameof(AddressBalance);
         }
     }
 }

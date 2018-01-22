@@ -1,13 +1,17 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
+using Lykke.AzureStorage.Tables.Paging;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Balances;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Lykke.Service.RaiblocksApi.Core.Settings.ServiceSettings;
 using Lykke.Service.RaiblocksApi.Services;
 using Lykke.SettingsReader;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Service.RaiblocksApi.Modules
 {
@@ -49,12 +53,15 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .As<IShutdownManager>();
 
             builder.RegisterType<BalanceObservationRepository>()
-                .As<IBalanceObservationRepository>()
+                .As<IBalanceObservationRepository<BalanceObservation>>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
 
             builder.RegisterType<AddressBalanceRepository>()
-                .As<IAddressBalanceRepository>()
+                .As<IAddressBalanceRepository<AddressBalance>>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+            builder.RegisterType<BalanceService<BalanceObservation, AddressBalance>>().
+                As<IBalanceService<BalanceObservation, AddressBalance>>();
 
             builder.RegisterType<AssetService>()
                 .As<IAssetService>();

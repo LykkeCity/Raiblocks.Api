@@ -7,18 +7,20 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
     [Route("api/[controller]")]
     public class BalancesController : Controller
     {
-        private readonly IBlockchainService _blockchainService;
+        private readonly IBalanceService<BalanceObservation, AddressBalance> _balanceService;
         private readonly IAssetService _assetService;
 
-        public BalancesController(IBlockchainService blockchainService, IAssetService assetService)
+        public BalancesController(IBalanceService<BalanceObservation, AddressBalance> balanceService, IAssetService assetService)
         {
-            _blockchainService = blockchainService;
+            _balanceService  = balanceService;
             _assetService = assetService;
         }
 
@@ -33,7 +35,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> AddBalanceObservation(string address)
         {
-            if (!await _blockchainService.IsBalanceObserved(address) && await _blockchainService.AddBalanceObservation(address))
+            BalanceObservation balanceObservation = new BalanceObservation
+            {
+                Address = address,
+
+            };
+            if (!await _balanceService.IsBalanceObserved(balanceObservation) && await _balanceService.AddBalanceObservation(balanceObservation))
                 return Ok();
             else
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Specified address is already observed"));
@@ -50,7 +57,11 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> RemoveBalanceObservation(string address)
         {
-            if (await _blockchainService.IsBalanceObserved(address) && await _blockchainService.RemoveBalanceObservation(address))
+            BalanceObservation balanceObservation = new BalanceObservation
+            {
+                Address = address
+            };
+            if (await _balanceService.IsBalanceObserved(balanceObservation) && await _balanceService.RemoveBalanceObservation(balanceObservation))
                 return Ok();
             else
                 return StatusCode((int)HttpStatusCode.NoContent);
@@ -67,7 +78,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(PaginationResponse<WalletBalanceContract>), (int)HttpStatusCode.OK)]
         public async Task<PaginationResponse<WalletBalanceContract>> GetBalances([FromQuery]int take = 100, [FromQuery]string continuation = null)
         {
-            var balances = await _blockchainService.GetBalances();
+            var balances = await _balanceService.GetBalances(take, continuation);
             return PaginationResponse.From(
                 balances.continuation,
                 balances.items.Select(b => new WalletBalanceContract {
