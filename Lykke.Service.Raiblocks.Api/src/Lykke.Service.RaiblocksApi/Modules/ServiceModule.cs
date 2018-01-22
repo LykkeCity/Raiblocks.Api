@@ -2,10 +2,16 @@
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
 using Lykke.AzureStorage.Tables.Paging;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Balances;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Transactions;
 using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
+using Lykke.Service.RaiblocksApi.Core.Repositories.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
+using Lykke.Service.RaiblocksApi.Core.Repositories.Transactions;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Lykke.Service.RaiblocksApi.Core.Settings.ServiceSettings;
 using Lykke.Service.RaiblocksApi.Services;
@@ -52,6 +58,8 @@ namespace Lykke.Service.RaiblocksApi.Modules
             builder.RegisterType<ShutdownManager>()
                 .As<IShutdownManager>();
 
+
+            // Repositories setup
             builder.RegisterType<BalanceObservationRepository>()
                 .As<IBalanceObservationRepository<BalanceObservation>>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
@@ -60,8 +68,37 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .As<IAddressBalanceRepository<AddressBalance>>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
 
-            builder.RegisterType<BalanceService<BalanceObservation, AddressBalance>>().
-                As<IBalanceService<BalanceObservation, AddressBalance>>();
+
+            builder.RegisterType<AddressHistoryEntryRepository>()
+                .As<IAddressHistoryEntryRepository<AddressHistoryEntry>>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+            builder.RegisterType<AddressObservationRepository>()
+                .As<IAddressObservationRepository<AddressObservation>>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+            builder.RegisterType<TransactionBodyRepository>()
+                .As<ITransactionMetaRepository<TransactionBody>>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+            builder.RegisterType<TransactionMetaRepository>()
+                .As<ITransactionMetaRepository<TransactionMeta>>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+            builder.RegisterType<TransactionObservationRepository>()
+                .As<ITransactionObservationRepository<TransactionObservation>>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+
+
+            // Services setup
+            builder.RegisterType<BalanceService<BalanceObservation, AddressBalance>>()
+                .As<IBalanceService<BalanceObservation, AddressBalance>>();
+
+            builder.RegisterType<HistoryService<AddressHistoryEntry, AddressObservation>>()
+                .As<IHistoryService<AddressHistoryEntry, AddressObservation>>();
+
+            builder.RegisterType<TransactionService<TransactionBody, TransactionMeta, TransactionObservation>>()
+                .As<ITransactionService<TransactionBody, TransactionMeta, TransactionObservation>>();
 
             builder.RegisterType<AssetService>()
                 .As<IAssetService>();

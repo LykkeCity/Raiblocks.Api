@@ -1,5 +1,7 @@
 ﻿using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions;
+using Lykke.Service.RaiblocksApi.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
@@ -12,6 +14,16 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     [Route("api/[controller]")]
     public class TransactionsController : Controller
     {
+
+        private readonly ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> _balanceService;
+        private readonly IAssetService _assetService;
+
+        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> balanceService, IAssetService assetService)
+        {
+            _balanceService = balanceService;
+            _assetService = assetService;
+        }
+
         /// <summary>
         /// Build not signed transaction
         /// </summary>

@@ -10,7 +10,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances
     public class AddressBalance : AzureTableEntity, IAddressBalance
     {
         [IgnoreProperty]
-        public string Address { get => RowKey; }
+        public string Address { get => RowKey; set => RowKey = value; }
 
         [IgnoreProperty]
         public string AssetId { get; set; }

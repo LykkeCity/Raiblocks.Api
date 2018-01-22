@@ -1,4 +1,5 @@
 ﻿using Lykke.AzureStorage.Tables;
+using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +8,8 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
 {
     public class AddressHistoryEntry : AzureTableEntity
     {
-        public string OperationId { get; set; }
+        [IgnoreProperty]
+        public string OperationId { get => RowKey; set => RowKey = value; }
 
         public string FromAddress { get; set; }
 
@@ -15,6 +17,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
 
         public DateTime TransactionTimestamp { get; set; }
         
+        [IgnoreProperty]
         public string AssetId { get; set; }
 
         public string Amount { get; set; }

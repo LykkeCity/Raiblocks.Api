@@ -1,24 +1,17 @@
 ﻿using Lykke.AzureStorage.Tables;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions;
+using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions
 {
-    public class TransactionBody : AzureTableEntity
+    public class TransactionBody : AzureTableEntity, ITransactionBody
     {
-        public string FromAddress { get; set; }
-
-        public string ToAddress { get; set; }
-
-        public long AmountSatoshi { get; set; }
-
-        public long FeeSatoshi { get; set; }
-
-        public string Timestamp { get; set; }
-
-        public string Hash { get; set; }
-
-        public string Error { get; set; }
+        [IgnoreProperty]
+        public string OperationId { get => RowKey; set => RowKey = value; }
+        public string UnsignedTransaction { get; set; }
+        public string SignedTransaction { get; set; }
     }
 }

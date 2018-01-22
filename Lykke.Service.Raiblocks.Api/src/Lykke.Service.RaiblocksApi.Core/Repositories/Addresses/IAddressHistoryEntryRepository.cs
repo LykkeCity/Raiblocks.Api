@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
 {
-    public interface IAddressHistoryEntryRepository
+    public interface IAddressHistoryEntryRepository<T> : IRepository<T>
     {
     }
 }

@@ -6,7 +6,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances
 {
     public interface IAddressBalance
     {
-        string Address { get; }
+        string Address { get; set; }
 
         string AssetId { get; }
 

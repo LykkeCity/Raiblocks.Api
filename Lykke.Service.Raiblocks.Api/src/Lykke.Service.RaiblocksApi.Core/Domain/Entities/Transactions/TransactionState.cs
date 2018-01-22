@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions
+namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions
 {
     public enum TransactionState
     {

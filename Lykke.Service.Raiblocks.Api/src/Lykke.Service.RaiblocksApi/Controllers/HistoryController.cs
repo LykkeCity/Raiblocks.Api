@@ -1,5 +1,7 @@
 ﻿using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses;
+using Lykke.Service.RaiblocksApi.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
@@ -12,6 +14,15 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     [Route("api/[controller]")]
     public class HistoryController : Controller
     {
+        private readonly IHistoryService<AddressHistoryEntry, AddressObservation> _historyService;
+        private readonly IAssetService _assetService;
+
+        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation> historyService, IAssetService assetService)
+        {
+            _historyService = historyService;
+            _assetService = assetService;
+        }
+
         /// <summary>
         /// Start observation of the transactions that transfer fund from the address
         /// </summary>
