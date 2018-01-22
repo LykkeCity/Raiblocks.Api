@@ -7,10 +7,10 @@ namespace Lykke.Service.RaiblocksApi.Services
 {
     public class AssetService: IAssetService
     {
-        public string AssetId { get => "9fd6abe3-aa28-49e7-b02d-c1b0c15992bc"; }
+        public string AssetId { get => "XRB"; }
 
 
-        public string Name { get => "XRB"; }
+        public string Name { get => "RaiBlocks"; }
 
         public int Accuracy { get => 6; }
     }

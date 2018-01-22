@@ -38,7 +38,6 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             BalanceObservation balanceObservation = new BalanceObservation
             {
                 Address = address,
-
             };
             if (!await _balanceService.IsBalanceObserved(balanceObservation) && await _balanceService.AddBalanceObservation(balanceObservation))
                 return Ok();

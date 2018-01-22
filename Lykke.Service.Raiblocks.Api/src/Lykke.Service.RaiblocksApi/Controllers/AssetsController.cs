@@ -15,11 +15,14 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     public class AssetsController : Controller
     {
         private readonly IHealthService _healthService;
+        private readonly IAssetService _assetService;
 
-        public AssetsController(IHealthService healthService)
+        public AssetsController(IHealthService healthService, IAssetService assetService)
         {
             _healthService = healthService;
+            _assetService = assetService;
         }
+
 
         /// <summary>
         ///  Get batch blockchain assets (coins, tags)
@@ -32,7 +35,17 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(PaginationResponse<AssetContract>), (int)HttpStatusCode.OK)]
         public PaginationResponse<AssetContract> GetAssets([FromQuery]int take = 100, [FromQuery]string continuation = null)
         {
-            throw new NotImplementedException();
+            return PaginationResponse.From(
+                null,
+                new List<AssetContract> {
+                    new AssetContract
+                    {
+                        AssetId = _assetService.AssetId,
+                        Name = _assetService.Name,
+                        Accuracy = _assetService.Accuracy
+                    }
+                }
+               );
         }
 
         /// <summary>
@@ -46,7 +59,16 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public IActionResult GetAsset(string assetId)
         {
-            throw new NotImplementedException();
+            if (assetId.Equals(_assetService.AssetId))
+            {
+                return Ok(new AssetContract
+                {
+                    AssetId = _assetService.AssetId,
+                    Name = _assetService.Name,
+                    Accuracy = _assetService.Accuracy
+                });
+            }
+            return StatusCode((int)HttpStatusCode.NoContent);
         }
     }
 }

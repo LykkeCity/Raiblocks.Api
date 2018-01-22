@@ -1,6 +1,7 @@
 ﻿using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -32,9 +34,17 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("AddHistoryObservationFrom")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
-        public IActionResult AddHistoryObservationFrom(string address)
+        public async Task<IActionResult> AddHistoryObservationFrom(string address)
         {
-            throw new NotImplementedException();
+            AddressObservation addressObservation = new AddressObservation
+            {
+                Address = address,
+                Type = AddressObservationType.From
+            };
+            if (!await _historyService.IsAddressObserved(addressObservation) && await _historyService.AddAddressObservation(addressObservation))
+                return Ok();
+            else
+                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions from the address are already observed"));
         }
 
         /// <summary>
@@ -46,9 +56,17 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("AddHistoryObservationFrom")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
-        public IActionResult AddHistoryObservationTo(string address)
+        public async Task<IActionResult> AddHistoryObservationTo(string address)
         {
-            throw new NotImplementedException();
+            AddressObservation addressObservation = new AddressObservation
+            {
+                Address = address,
+                Type = AddressObservationType.To
+            };
+            if (!await _historyService.IsAddressObserved(addressObservation) && await _historyService.AddAddressObservation(addressObservation))
+                return Ok();
+            else
+                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions to the address are already observed"));
         }
 
         /// <summary>
