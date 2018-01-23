@@ -29,13 +29,13 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions
 
         public string Hash { get; set; }
 
-        public DateTime CreateTimestamp { get; set; }
+        public DateTime? CreateTimestamp { get; set; }
 
-        public DateTime SignTimestamp { get; set; }
+        public DateTime? SignTimestamp { get; set; }
 
-        public DateTime BroadcastTimestamp { get; set; }
+        public DateTime? BroadcastTimestamp { get; set; }
 
-        public DateTime CompleteTimestamp { get; set; }
+        public DateTime? CompleteTimestamp { get; set; }
 
 
     }

@@ -80,7 +80,9 @@ namespace Lykke.Service.RaiblocksApi
                     app.UseDeveloperExceptionPage();
                 }
 
-                app.UseLykkeMiddleware("RaiblocksApi", ex => new { Message = "Technical problem" });
+                app.UseLykkeMiddleware("RaiblocksApi", ex =>
+                new { Message = "Technical problem" }
+                );
 
                 app.UseMvc();
                 app.UseSwagger(c =>

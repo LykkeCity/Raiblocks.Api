@@ -1,4 +1,5 @@
-﻿using Lykke.Service.RaiblocksApi.Core.Repositories.Transactions;
+﻿using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions;
+using Lykke.Service.RaiblocksApi.Core.Repositories.Transactions;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,10 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
-    public class TransactionService<T,P,Q> : ITransactionService<T, P, Q>
+    public class TransactionService<T, P, Q> : ITransactionService<T, P, Q>
+        where T : ITransactionBody
+        where P : ITransactionMeta
+        where Q : ITransactionObservation
     {
         private readonly ITransactionBodyRepository<T> _transactionBodyRepository;
         private readonly ITransactionMetaRepository<P> _transactionMetaRepository;
@@ -23,6 +27,11 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<P> GetTransactionMeta(string id)
         {
             return await _transactionMetaRepository.GetAsync(id);
+        }
+
+        public async Task<bool> SaveTransactionMeta(P transactionMeta)
+        {
+            return await _transactionMetaRepository.CreateIfNotExistsAsync(transactionMeta);
         }
     }
 }

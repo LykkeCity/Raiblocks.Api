@@ -35,9 +35,23 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("BuildNotSignedTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
-        public IActionResult BuildNotSignedTransaction([FromBody] BuildTransactionRequest buildTransactionRequest)
+        public async Task<IActionResult> BuildNotSignedTransaction([FromBody] BuildTransactionRequest buildTransactionRequest)
         {
+            //TODO: blockChain Request
+            TransactionMeta transactionMeta = new TransactionMeta
+            {
+                OperationId = buildTransactionRequest.OperationId,
+                FromAddress = buildTransactionRequest.FromAddress,
+                ToAddress = buildTransactionRequest.ToAddress,
+                AssetId = buildTransactionRequest.AssetId,
+                Amount = buildTransactionRequest.Amount,
+                IncludeFee = buildTransactionRequest.IncludeFee,
+                State = TransactionState.NotSigned
+            };
+            await _transactionService.SaveTransactionMeta(transactionMeta);
+
             throw new NotImplementedException();
+
         }
 
         /// <summary>
@@ -103,7 +117,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 {
                     OperationId = txMeta.OperationId,
                     State = state,
-                    Timestamp = txMeta.CompleteTimestamp,
+                    Timestamp = (txMeta.CompleteTimestamp ?? txMeta.BroadcastTimestamp).Value,
                     Amount = txMeta.Amount,
                     Fee = "0",
                     Hash = txMeta.Hash,

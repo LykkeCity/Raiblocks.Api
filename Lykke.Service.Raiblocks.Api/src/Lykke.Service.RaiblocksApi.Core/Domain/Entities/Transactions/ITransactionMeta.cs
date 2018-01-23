@@ -24,12 +24,12 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions
 
         string Hash { get; set; }
 
-        DateTime CreateTimestamp { get; set; }
+        DateTime? CreateTimestamp { get; set; }
 
-        DateTime SignTimestamp { get; set; }
+        DateTime? SignTimestamp { get; set; }
 
-        DateTime BroadcastTimestamp { get; set; }
+        DateTime? BroadcastTimestamp { get; set; }
 
-        DateTime CompleteTimestamp { get; set; }
+        DateTime? CompleteTimestamp { get; set; }
     }
 }
