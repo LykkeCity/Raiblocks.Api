@@ -2,6 +2,7 @@
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
 using Lykke.AzureStorage.Tables.Paging;
+using Lykke.JobTriggers.Extenstions;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions;
@@ -107,6 +108,11 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .As<IBlockchainService>();
 
             // TODO: Add your dependencies here
+
+            builder.AddTriggers(pool =>
+            {
+                pool.AddDefaultConnection(_settings.Nested(x => x.Db.DataConnString));
+            });
 
             builder.Populate(_services);
         }

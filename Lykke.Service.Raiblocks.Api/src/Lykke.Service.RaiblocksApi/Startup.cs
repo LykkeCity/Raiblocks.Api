@@ -6,6 +6,7 @@ using AzureStorage.Tables;
 using Common.Log;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
+using Lykke.JobTriggers.Triggers;
 using Lykke.Logs;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Lykke.Service.RaiblocksApi.Core.Settings;
@@ -26,6 +27,9 @@ namespace Lykke.Service.RaiblocksApi
         public IContainer ApplicationContainer { get; private set; }
         public IConfigurationRoot Configuration { get; }
         public ILog Log { get; private set; }
+
+        private TriggerHost _triggerHost;
+        private Task _triggerHostTask;
 
         public Startup(IHostingEnvironment env)
         {
@@ -115,6 +119,10 @@ namespace Lykke.Service.RaiblocksApi
 
                 await ApplicationContainer.Resolve<IStartupManager>().StartAsync();
 
+                _triggerHost = new TriggerHost(new AutofacServiceProvider(ApplicationContainer));
+
+                _triggerHostTask = _triggerHost.Start();
+
                 await Log.WriteMonitorAsync("", $"Env: {Program.EnvInfo}", "Started");
             }
             catch (Exception ex)
@@ -129,6 +137,14 @@ namespace Lykke.Service.RaiblocksApi
             try
             {
                 // NOTE: Service still can recieve and process requests here, so take care about it if you add logic here.
+
+
+                _triggerHost?.Cancel();
+
+                if (_triggerHostTask != null)
+                {
+                    await _triggerHostTask;
+                }
 
                 await ApplicationContainer.Resolve<IShutdownManager>().StopAsync();
             }
