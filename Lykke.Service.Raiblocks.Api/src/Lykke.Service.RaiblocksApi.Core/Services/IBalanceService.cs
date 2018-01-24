@@ -10,10 +10,14 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
     {
         Task<bool> AddBalanceObservation(T item);
 
+        Task<bool> AddBalance(P item);
+
         Task<bool> RemoveBalanceObservation(T item);
 
         Task<bool> IsBalanceObserved(T item);
 
         Task<(string continuation, IEnumerable<P> items)> GetBalances(int take = 100, string continuation = null);
+
+        Task<(string continuation, IEnumerable<T> items)> GetBalancesObservation(int take = 100, string continuation = null);
     }
 }

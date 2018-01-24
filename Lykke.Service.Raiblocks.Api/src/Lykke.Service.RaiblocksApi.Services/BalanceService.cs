@@ -42,5 +42,15 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             return await _addressBalanceRepository.GetAsync(take, continuation);
         }
+
+        public async Task<(string continuation, IEnumerable<T> items)> GetBalancesObservation(int take = 100, string continuation = null)
+        {
+            return await _balanceObservationRepository.GetAsync(take, continuation);
+        }
+
+        public async Task<bool> AddBalance(P item)
+        {
+            return await _addressBalanceRepository.CreateIfNotExistsAsync(item);
+        }
     }
 }

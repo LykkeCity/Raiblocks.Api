@@ -3,5 +3,7 @@
     public class RaiblocksApiSettings
     {
         public DbSettings Db { get; set; }
+
+        public NodeAPISettings nodeAPI { get; set; }
     }
 }

@@ -104,8 +104,10 @@ namespace Lykke.Service.RaiblocksApi.Modules
             builder.RegisterType<AssetService>()
                 .As<IAssetService>();
 
-            builder.RegisterType<BlockchainService>()
-                .As<IBlockchainService>();
+            builder.RegisterType<RaiBlockchainService<AddressBalance, BalanceObservation>>()
+                .As<IBlockchainService<AddressBalance, BalanceObservation>>()
+                .WithParameter("privateNodeURL", _settings.Nested(s => s.nodeAPI.PrivateNodeURL).CurrentValue)
+                .WithParameter("publicNodeURL", _settings.Nested(s => s.nodeAPI.PublicNodeURL).CurrentValue);
 
             // TODO: Add your dependencies here
 

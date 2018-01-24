@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Services
 {
-    public interface IBlockchainService
+    public interface IBlockchainService <T, P>
+        where T: IAddressBalance
+        where P: IBalanceObservation
     {
+        Task<IEnumerable<T>> GetAddressBalances(IEnumerable<P> balanceObservation);
     }
 }
