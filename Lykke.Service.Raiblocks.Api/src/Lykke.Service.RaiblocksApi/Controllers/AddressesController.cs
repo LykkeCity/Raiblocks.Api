@@ -1,16 +1,29 @@
-﻿using Lykke.Service.BlockchainApi.Contract.Addresses;
+﻿using Common.Log;
+using Lykke.Service.BlockchainApi.Contract.Addresses;
+using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
+using Lykke.Service.RaiblocksApi.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
     [Route("api/[controller]")]
     public class AddressesController : Controller
     {
+        private readonly ILog _log;
+        private readonly IBlockchainService<AddressBalance, BalanceObservation> _blockchainService;
+
+        public AddressesController(ILog log, IBlockchainService<AddressBalance, BalanceObservation> blockchainService)
+        {
+            _log = log;
+            _blockchainService = blockchainService;
+        }
+
         /// <summary>
         /// Check wallet address validity
         /// </summary>
@@ -19,9 +32,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet("{address}/validity")]
         [SwaggerOperation("AddressValidity")]
         [ProducesResponseType(typeof(AddressValidationResponse), (int)HttpStatusCode.OK)]
-        public AddressValidationResponse AddressValidity(string address)
+        public async Task<AddressValidationResponse> AddressValidity(string address)
         {
-            throw new NotImplementedException();
+            return new AddressValidationResponse
+            {
+                IsValid = await _blockchainService.IsAddressValidAsync(address)
+            };
         }
     }
 }

@@ -11,5 +11,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         where P: IBalanceObservation
     {
         Task<IEnumerable<T>> GetAddressBalances(IEnumerable<P> balanceObservation);
+
+        Task<bool> IsAddressValidAsync(string address);
     }
 }
