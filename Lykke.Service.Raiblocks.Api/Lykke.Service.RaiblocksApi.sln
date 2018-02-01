@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2020
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.RaiblocksApi", "src\Lykke.Service.RaiblocksApi\Lykke.Service.RaiblocksApi.csproj", "{E414FDB9-FEEA-4CD0-9BBA-D1541601DF29}"
 EndProject
@@ -28,6 +28,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.RaiblocksApi.Tests", "tests\Lykke.Service.RaiblocksApi.Tests\Lykke.Service.RaiblocksApi.Tests.csproj", "{A61FFDEE-5725-4650-A788-6E55EE5EFD5B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4. Tests", "4. Tests", "{8F9036B1-5106-4C69-B2D2-B78EE52687A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaiBlocks", "..\RaiBlocks.Net\RaiBlocks\RaiBlocks.csproj", "{38DB90D0-613B-401A-911D-7DE2E9241D93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +61,10 @@ Global
 		{A61FFDEE-5725-4650-A788-6E55EE5EFD5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A61FFDEE-5725-4650-A788-6E55EE5EFD5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A61FFDEE-5725-4650-A788-6E55EE5EFD5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38DB90D0-613B-401A-911D-7DE2E9241D93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38DB90D0-613B-401A-911D-7DE2E9241D93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38DB90D0-613B-401A-911D-7DE2E9241D93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38DB90D0-613B-401A-911D-7DE2E9241D93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
