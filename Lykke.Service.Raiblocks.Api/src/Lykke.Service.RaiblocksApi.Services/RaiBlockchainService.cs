@@ -39,21 +39,16 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<bool> IsAddressValidAsync(string address)
         {
-            //JObject jObject = JObject.FromObject(new
-            //{
-            //    action = "validate_account_number",
-            //    account = address
-            //});
-            //var requestContent = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
+            try
+            {
+                var result = await _raiBlocksRpc.ValidateAccount(new RaiAddress(address));
+                return result.IsValid();
+            }
+            catch (ArgumentException e)
+            {
+                return false;
+            }
 
-            //using (HttpClient client = new HttpClient())
-            //using (HttpResponseMessage response = await client.PostAsync(_publicNodeURL, requestContent))
-            //using (HttpContent content = response.Content)
-            //{
-            //    var result = JObject.Parse(await content.ReadAsStringAsync());
-            //    return result["valid"].ToString().Equals("1") ? true : false;
-            //}
-            return false;
         }
     }
 }
