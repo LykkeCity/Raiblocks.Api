@@ -6,8 +6,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Settings.ServiceSettings
 {
     public class NodeAPISettings
     {
-       public string PrivateNodeURL { get; set; }
-
-       public string PublicNodeURL { get; set; }
+       public string NodeURL { get; set; }
     }
 }

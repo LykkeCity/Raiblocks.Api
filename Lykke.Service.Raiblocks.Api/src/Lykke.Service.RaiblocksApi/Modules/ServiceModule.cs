@@ -19,6 +19,7 @@ using Lykke.Service.RaiblocksApi.Services;
 using Lykke.SettingsReader;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.WindowsAzure.Storage.Table;
+using RaiBlocks;
 
 namespace Lykke.Service.RaiblocksApi.Modules
 {
@@ -104,10 +105,12 @@ namespace Lykke.Service.RaiblocksApi.Modules
             builder.RegisterType<AssetService>()
                 .As<IAssetService>();
 
+            builder.RegisterType<RaiBlocksRpc>()
+                .As<RaiBlocksRpc>()
+                .WithParameter("url", _settings.Nested(s => s.nodeAPI.NodeURL).CurrentValue);
+
             builder.RegisterType<RaiBlockchainService<AddressBalance, BalanceObservation>>()
-                .As<IBlockchainService<AddressBalance, BalanceObservation>>()
-                .WithParameter("privateNodeURL", _settings.Nested(s => s.nodeAPI.PrivateNodeURL).CurrentValue)
-                .WithParameter("publicNodeURL", _settings.Nested(s => s.nodeAPI.PublicNodeURL).CurrentValue);
+                .As<IBlockchainService<AddressBalance, BalanceObservation>>();
 
             // TODO: Add your dependencies here
 

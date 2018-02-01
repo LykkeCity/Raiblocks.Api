@@ -3,6 +3,8 @@ using Lykke.Service.RaiblocksApi.Core.Repositories;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Newtonsoft.Json.Linq;
+using RaiBlocks;
+using RaiBlocks.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,62 +19,41 @@ namespace Lykke.Service.RaiblocksApi.Services
         where P : IBalanceObservation
     {
 
-        private readonly string _privateNodeURL;
+        private readonly RaiBlocksRpc _raiBlocksRpc;
 
-        private readonly string _publicNodeURL;
-
-        public RaiBlockchainService(string privateNodeURL, string publicNodeURL)
+        public RaiBlockchainService(RaiBlocksRpc raiBlocksRpc)
         {
-            _privateNodeURL = privateNodeURL;
-            _publicNodeURL = publicNodeURL;
+            _raiBlocksRpc = raiBlocksRpc;
         }
 
         public async Task<IEnumerable<T>> GetAddressBalances(IEnumerable<P> balanceObservation)
         {
-            JObject jObject = JObject.FromObject(new
+            IEnumerable<RaiAddress> accounts = balanceObservation.Select(x => new RaiAddress(x.Address));
+            var result = await _raiBlocksRpc.GetBalancesAsync(accounts);
+            return result.Balances.Select(x => new T
             {
-                action = "accounts_balances",
-                accounts = balanceObservation.Select(x => x.Address)
+                Address = x.Key,
+                Balance = x.Value.ToString()
             });
-            var requestContent = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
-
-            using (HttpClient client = new HttpClient())
-            using (HttpResponseMessage response = await client.PostAsync(_publicNodeURL, requestContent))
-            using (HttpContent content = response.Content)
-            {
-                var result = JObject.Parse(await content.ReadAsStringAsync());
-                var addressBalances = new List<T>();
-                foreach (var x in (JObject)result.Values().FirstOrDefault())
-                {
-                    string name = x.Key;
-                    JObject value = (JObject)x.Value;
-
-                    addressBalances.Add(new T {
-                        Address = name,
-                        Balance = value["balance"]?.ToString()
-                    });
-                }
-
-                return addressBalances;
-            }
         }
 
         public async Task<bool> IsAddressValidAsync(string address)
         {
-            JObject jObject = JObject.FromObject(new
-            {
-                action = "validate_account_number",
-                account = address
-            });
-            var requestContent = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
+            //JObject jObject = JObject.FromObject(new
+            //{
+            //    action = "validate_account_number",
+            //    account = address
+            //});
+            //var requestContent = new StringContent(jObject.ToString(), Encoding.UTF8, "application/json");
 
-            using (HttpClient client = new HttpClient())
-            using (HttpResponseMessage response = await client.PostAsync(_publicNodeURL, requestContent))
-            using (HttpContent content = response.Content)
-            {
-                var result = JObject.Parse(await content.ReadAsStringAsync());
-                return result["valid"].ToString().Equals("1") ? true : false;
-            }
+            //using (HttpClient client = new HttpClient())
+            //using (HttpResponseMessage response = await client.PostAsync(_publicNodeURL, requestContent))
+            //using (HttpContent content = response.Content)
+            //{
+            //    var result = JObject.Parse(await content.ReadAsStringAsync());
+            //    return result["valid"].ToString().Equals("1") ? true : false;
+            //}
+            return false;
         }
     }
 }
