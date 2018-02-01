@@ -27,15 +27,15 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         }
 
         /// <summary>
-        /// Build not signed transaction
+        /// Build not signed transaction to transfer from the single source to the single destination
         /// </summary>
         /// <param name="buildTransactionRequest">Build transaction request</param>
         /// <returns>Build transaction response</returns>
-        [HttpPost]
+        [HttpPost("single")]
         [SwaggerOperation("BuildNotSignedTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
-        public async Task<IActionResult> BuildNotSignedTransaction([FromBody] BuildTransactionRequest buildTransactionRequest)
+        public async Task<IActionResult> BuildNotSignedSingleTransaction([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
         {
             //TODO: blockChain Request
             TransactionMeta transactionMeta = new TransactionMeta
@@ -55,18 +55,17 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         }
 
         /// <summary>
-        ///  Rebuild not signed transaction with the specified fee factor
+        /// Build not signed transaction with many inputs
         /// </summary>
-        /// <param name="rebuildTransactionRequest">Rebuild transaction request</param>
-        /// <returns>Rebuild transaction response</returns>
-        [HttpPut]
-        [SwaggerOperation("RebuildNotSignedTransaction")]
-        [ProducesResponseType(typeof(RebuildTransactionResponse), (int)HttpStatusCode.OK)]
+        /// <param name="buildTransactionRequest">Build transaction request</param>
+        /// <returns>Build transaction response</returns>
+        [HttpPost("many-inputs")]
+        [SwaggerOperation("BuildNotSignedManyInputsTransaction")]
+        [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
-        public IActionResult RebuildNotSignedTransaction([FromBody] RebuildTransactionRequest rebuildTransactionRequest)
+        public  IActionResult BuildNotSignedManyInputsTransaction([FromBody] BuildTransactionWithManyInputsRequest buildTransactionRequest)
         {
-            throw new NotImplementedException();
+            return StatusCode((int)HttpStatusCode.NotImplemented);
         }
 
         /// <summary>
@@ -84,15 +83,15 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         }
 
         /// <summary>
-        /// Get broadcasted transaction
+        /// Get broadcasted transaction with single input and output
         /// </summary>
         /// <param name="operationId">Operation Id</param>
         /// <returns>Broadcasted transaction response</returns>
-        [HttpGet("broadcast/{operationId}")]
-        [SwaggerOperation("GetBroadcastedTransaction")]
-        [ProducesResponseType(typeof(BroadcastedTransactionResponse), (int)HttpStatusCode.OK)]
+        [HttpGet("broadcast/single/{operationId}")]
+        [SwaggerOperation("GetBroadcastedSingleTransaction")]
+        [ProducesResponseType(typeof(BroadcastedSingleTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> GetBroadcastedTransaction(string operationId)
+        public async Task<IActionResult> GetBroadcastedSingleTransaction(string operationId)
         {
             var txMeta = await _transactionService.GetTransactionMeta(operationId);
             if (txMeta != null)
@@ -113,7 +112,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                         break;
                 }
 
-                return Ok(new BroadcastedTransactionResponse
+                return Ok(new BroadcastedSingleTransactionResponse
                 {
                     OperationId = txMeta.OperationId,
                     State = state,
@@ -141,5 +140,68 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         {
             throw new NotImplementedException();
         }
+
+        #region NotImplemented
+
+        /// <summary>
+        /// Build not signed transaction with many outputs
+        /// </summary>
+        /// <param name="buildTransactionRequest">Build transaction request</param>
+        /// <returns>Build transaction response</returns>
+        [HttpPost("many-outputs")]
+        [SwaggerOperation("BuildNotSignedManyOutputsTransaction")]
+        [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        public IActionResult BuildNotSignedManyOutputsTransaction([FromBody] BuildTransactionWithManyOutputsRequest buildTransactionRequest)
+        {
+            return StatusCode((int)HttpStatusCode.NotImplemented);
+        }
+
+        /// <summary>
+        ///  Rebuild not signed transaction with the specified fee factor
+        /// </summary>
+        /// <param name="rebuildTransactionRequest">Rebuild transaction request</param>
+        /// <returns>Rebuild transaction response</returns>
+        [HttpPut]
+        [SwaggerOperation("RebuildNotSignedTransaction")]
+        [ProducesResponseType(typeof(RebuildTransactionResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
+        public IActionResult RebuildNotSignedTransaction([FromBody] RebuildTransactionRequest rebuildTransactionRequest)
+        {
+            return StatusCode((int)HttpStatusCode.NotImplemented);
+        }
+
+        /// <summary>
+        /// Get broadcasted transaction with with many inputs
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <returns>Broadcasted transaction response</returns>
+        [HttpGet("broadcast/many-inputs/{operationId}")]
+        [SwaggerOperation("GetBroadcastedManyInputsTransaction")]
+        [ProducesResponseType(typeof(BroadcastedTransactionWithManyInputsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
+        public IActionResult GetBroadcastedManyInputsTransaction(string operationId)
+        {
+            return StatusCode((int)HttpStatusCode.NotImplemented);
+        }
+
+
+        /// <summary>
+        /// Get broadcasted transaction with with many outputs
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <returns>Broadcasted transaction response</returns>
+        [HttpGet("broadcast/many-outputs/{operationId}")]
+        [SwaggerOperation("GetBroadcastedManyOutputsTransaction")]
+        [ProducesResponseType(typeof(BroadcastedTransactionWithManyOutputsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
+        public IActionResult GetBroadcastedManyOutputsTransaction(string operationId)
+        {
+            return StatusCode((int)HttpStatusCode.NotImplemented);
+        }
+        #endregion
     }
 }

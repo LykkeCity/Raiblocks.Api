@@ -98,5 +98,33 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Stop observation of the transactions that transfer fund from the address
+        /// </summary>
+        /// <param name="address">Address</param>
+        /// <returns>Status code</returns>
+        [HttpDelete("from/{address}/observation")]
+        [SwaggerOperation("DeleteHistoryFrom")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
+        public IEnumerable<HistoricalTransactionContract> DeleteHistoryFrom(string address)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Stop observation of the transactions that transfer fund to the address
+        /// </summary>
+        /// <param name="address">Address</param>
+        /// <returns>Status code</returns>
+        [HttpDelete("to/{address}/observation")]
+        [SwaggerOperation("DeleteHistoryTo")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
+        public IEnumerable<HistoricalTransactionContract> DeleteHistoryTo(string address)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
