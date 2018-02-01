@@ -10,5 +10,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
     {
         Task<bool> IsAddressObserved(P addressObservation);
         Task<bool> AddAddressObservation(P addressObservation);
+        Task<bool> RemoveAddressObservation(P addressObservation);
     }
 }

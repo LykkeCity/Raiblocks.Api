@@ -12,6 +12,11 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
         [IgnoreProperty]
         public string Address { get => RowKey; set => RowKey = value; }
 
-        public AddressObservationType Type { get; set; }
+        [IgnoreProperty]
+        public AddressObservationType Type
+        {
+            get => (AddressObservationType)Enum.Parse(typeof(AddressObservationType), PartitionKey);
+            set => PartitionKey = Enum.GetName(typeof(AddressObservationType), value);
+        }
     }
 }

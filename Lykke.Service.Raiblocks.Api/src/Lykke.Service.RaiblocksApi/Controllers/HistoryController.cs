@@ -108,9 +108,17 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("DeleteHistoryFrom")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public IEnumerable<HistoricalTransactionContract> DeleteHistoryFrom(string address)
+        public async Task<IActionResult> DeleteHistoryFromAsync(string address)
         {
-            throw new NotImplementedException();
+            AddressObservation addressObservation = new AddressObservation
+            {
+                Address = address,
+                Type = AddressObservationType.From
+            };
+            if (await _historyService.IsAddressObserved(addressObservation) && await _historyService.RemoveAddressObservation(addressObservation))
+                return Ok();
+            else
+                return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         /// <summary>
@@ -122,9 +130,17 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("DeleteHistoryTo")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public IEnumerable<HistoricalTransactionContract> DeleteHistoryTo(string address)
+        public async Task<IActionResult> DeleteHistoryToAsync(string address)
         {
-            throw new NotImplementedException();
+            AddressObservation addressObservation = new AddressObservation
+            {
+                Address = address,
+                Type = AddressObservationType.To
+            };
+            if (await _historyService.IsAddressObserved(addressObservation) && await _historyService.RemoveAddressObservation(addressObservation))
+                return Ok();
+            else
+                return StatusCode((int)HttpStatusCode.NoContent);
         }
     }
 }

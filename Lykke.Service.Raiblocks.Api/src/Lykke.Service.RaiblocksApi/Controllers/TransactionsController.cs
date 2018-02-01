@@ -55,20 +55,6 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         }
 
         /// <summary>
-        /// Build not signed transaction with many inputs
-        /// </summary>
-        /// <param name="buildTransactionRequest">Build transaction request</param>
-        /// <returns>Build transaction response</returns>
-        [HttpPost("many-inputs")]
-        [SwaggerOperation("BuildNotSignedManyInputsTransaction")]
-        [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
-        public  IActionResult BuildNotSignedManyInputsTransaction([FromBody] BuildTransactionWithManyInputsRequest buildTransactionRequest)
-        {
-            return StatusCode((int)HttpStatusCode.NotImplemented);
-        }
-
-        /// <summary>
         /// Broadcast the signed transaction
         /// </summary>
         /// <param name="broadcastTransactionRequest">Broadcast transaction request</param>
@@ -144,6 +130,20 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         #region NotImplemented
 
         /// <summary>
+        /// Build not signed transaction with many inputs
+        /// </summary>
+        /// <param name="buildTransactionRequest">Build transaction request</param>
+        /// <returns>Build transaction response</returns>
+        [HttpPost("many-inputs")]
+        [SwaggerOperation("BuildNotSignedManyInputsTransaction")]
+        [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        public IActionResult BuildNotSignedManyInputsTransaction([FromBody] BuildTransactionWithManyInputsRequest buildTransactionRequest)
+        {
+            return StatusCode((int)HttpStatusCode.NotImplemented);
+        }
+
+        /// <summary>
         /// Build not signed transaction with many outputs
         /// </summary>
         /// <param name="buildTransactionRequest">Build transaction request</param>
@@ -202,6 +202,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         {
             return StatusCode((int)HttpStatusCode.NotImplemented);
         }
+
         #endregion
     }
 }

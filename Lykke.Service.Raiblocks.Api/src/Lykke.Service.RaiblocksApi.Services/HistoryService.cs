@@ -28,5 +28,10 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             return await _addressObservationRepository.IsExistAsync(addressObservation);
         }
+
+        public async Task<bool> RemoveAddressObservation(P addressObservation)
+        {
+            return await _addressObservationRepository.DeleteIfExistAsync(addressObservation);
+        }
     }
 }
