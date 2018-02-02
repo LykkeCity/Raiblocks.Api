@@ -10,7 +10,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions
     public class TransactionBody : AzureTableEntity, ITransactionBody
     {
         [IgnoreProperty]
-        public string OperationId { get => RowKey; set => RowKey = value; }
+        public Guid OperationId { get => new Guid(RowKey); set => RowKey = value.ToString(); }
         public string UnsignedTransaction { get; set; }
         public string SignedTransaction { get; set; }
     }

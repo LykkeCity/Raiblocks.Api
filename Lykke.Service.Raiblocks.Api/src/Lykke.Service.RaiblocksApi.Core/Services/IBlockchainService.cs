@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Services
 {
-    public interface IBlockchainService <T, P>
-        where T: IAddressBalance
-        where P: IBalanceObservation
+    public interface IBlockchainService
     {
-        Task<IEnumerable<T>> GetAddressBalances(IEnumerable<P> balanceObservation);
+        Task<Dictionary<string, string>> GetAddressBalances(IEnumerable<string> addresses);
 
         Task<bool> IsAddressValidAsync(string address);
+
+        Task<string> CreateUnsignSendTransaction(string address, string destination, string amount);
+        Task<string> GetAddressBalance(string toAddress);
     }
 }

@@ -109,8 +109,8 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .As<RaiBlocksRpc>()
                 .WithParameter("url", _settings.Nested(s => s.nodeAPI.NodeURL).CurrentValue);
 
-            builder.RegisterType<RaiBlockchainService<AddressBalance, BalanceObservation>>()
-                .As<IBlockchainService<AddressBalance, BalanceObservation>>();
+            builder.RegisterType<RaiBlockchainService>()
+                .As<IBlockchainService>();
 
             // TODO: Add your dependencies here
 

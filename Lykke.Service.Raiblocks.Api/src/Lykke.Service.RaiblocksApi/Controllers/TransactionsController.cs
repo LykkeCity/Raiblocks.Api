@@ -8,6 +8,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,11 +20,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
         private readonly ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> _transactionService;
         private readonly IAssetService _assetService;
+        private readonly IBlockchainService _blockchainService;
 
-        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> transactionService, IAssetService assetService)
+        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> transactionService, IAssetService assetService, IBlockchainService blockchainService)
         {
             _transactionService = transactionService;
             _assetService = assetService;
+            _blockchainService = blockchainService;
         }
 
         /// <summary>
@@ -37,21 +40,48 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
         public async Task<IActionResult> BuildNotSignedSingleTransaction([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
         {
-            //TODO: blockChain Request
-            TransactionMeta transactionMeta = new TransactionMeta
+            TransactionBody transactionBody = await _transactionService.GetTransactionBodyById(buildTransactionRequest.OperationId);
+
+            TransactionExecutionError? error = null;
+
+            if(transactionBody == null)
             {
-                OperationId = buildTransactionRequest.OperationId,
-                FromAddress = buildTransactionRequest.FromAddress,
-                ToAddress = buildTransactionRequest.ToAddress,
-                AssetId = buildTransactionRequest.AssetId,
-                Amount = buildTransactionRequest.Amount,
-                IncludeFee = buildTransactionRequest.IncludeFee,
-                State = TransactionState.NotSigned
-            };
-            await _transactionService.SaveTransactionMeta(transactionMeta);
+                TransactionMeta transactionMeta = new TransactionMeta
+                {
+                    OperationId = buildTransactionRequest.OperationId,
+                    FromAddress = buildTransactionRequest.FromAddress,
+                    ToAddress = buildTransactionRequest.ToAddress,
+                    AssetId = buildTransactionRequest.AssetId,
+                    Amount = buildTransactionRequest.Amount,
+                    IncludeFee = buildTransactionRequest.IncludeFee,
+                    State = TransactionState.NotSigned,
+                    CreateTimestamp = DateTime.Now
+                };
 
-            throw new NotImplementedException();
+                var balance = await _blockchainService.GetAddressBalance(transactionMeta.ToAddress);
+                if (BigInteger.Parse(balance) < BigInteger.Parse(transactionMeta.Amount))
+                {
+                    error = TransactionExecutionError.NotEnoughtBalance;
+                }
 
+                var unsignTransaction = await _blockchainService.CreateUnsignSendTransaction(transactionMeta.FromAddress, transactionMeta.ToAddress, transactionMeta.Amount);
+
+                await _transactionService.SaveTransactionMeta(transactionMeta);
+
+                transactionBody = new TransactionBody
+                {
+                    OperationId = buildTransactionRequest.OperationId,
+                    UnsignedTransaction = unsignTransaction
+                };
+
+                await _transactionService.SaveTransactionBody(transactionBody);
+            }
+       
+            return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
+            {
+                ErrorCode = error,
+                TransactionContext = transactionBody.UnsignedTransaction
+            });
         }
 
         /// <summary>

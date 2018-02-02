@@ -14,12 +14,12 @@ namespace Lykke.Service.RaiblocksApi.Jobs
     public class BalanceRefreshJob
     {
         private readonly ILog _log;
-        private readonly IBlockchainService<AddressBalance, BalanceObservation> _blockchainService;
+        private readonly IBlockchainService _blockchainService;
         private readonly IBalanceService<BalanceObservation, AddressBalance> _balanceService;
 
         private const int pageSize = 10;
 
-        public BalanceRefreshJob(ILog log, IBlockchainService<AddressBalance, BalanceObservation> blockchainService, IBalanceService<BalanceObservation, AddressBalance> balanceService)
+        public BalanceRefreshJob(ILog log, IBlockchainService blockchainService, IBalanceService<BalanceObservation, AddressBalance> balanceService)
         {
             _log = log;
             _blockchainService = blockchainService;
@@ -39,9 +39,12 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                 continuation = balancesObservation.continuation;
 
-                foreach (var balance in await _blockchainService.GetAddressBalances(balancesObservation.items))
+                foreach (KeyValuePair<string, string> balance in await _blockchainService.GetAddressBalances(balancesObservation.items.Select(x => x.Address)))
                 {
-                    await _balanceService.AddBalance(balance);
+                    await _balanceService.AddBalance(new AddressBalance {
+                        Address = balance.Key,
+                        Balance = balance.Value
+                    });
                 };
             } while (continuation != null);
             await _log.WriteInfoAsync(nameof(BalanceRefreshJob), $"Env: {Program.EnvInfo}", "Refresh balances finished", DateTime.Now);

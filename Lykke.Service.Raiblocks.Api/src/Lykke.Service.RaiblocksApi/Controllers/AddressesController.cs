@@ -16,9 +16,9 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     public class AddressesController : Controller
     {
         private readonly ILog _log;
-        private readonly IBlockchainService<AddressBalance, BalanceObservation> _blockchainService;
+        private readonly IBlockchainService _blockchainService;
 
-        public AddressesController(ILog log, IBlockchainService<AddressBalance, BalanceObservation> blockchainService)
+        public AddressesController(ILog log, IBlockchainService blockchainService)
         {
             _log = log;
             _blockchainService = blockchainService;

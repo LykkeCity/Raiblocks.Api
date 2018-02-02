@@ -6,7 +6,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions
 {
     public interface ITransactionBody
     {
-        string OperationId { get; set; }
+        Guid OperationId { get; set; }
 
         string UnsignedTransaction { get; set; }
 
