@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Services
 {
-    public interface ITransactionService<T, P, Q> 
-        where T: ITransactionBody
-        where P: ITransactionMeta
-        where Q: ITransactionObservation
+    public interface ITransactionService<T, P, Q>
+        where T : ITransactionBody
+        where P : ITransactionMeta
+        where Q : ITransactionObservation
     {
         Task<P> GetTransactionMeta(string id);
         Task<bool> SaveTransactionMeta(P transactionMeta);
@@ -17,5 +17,8 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         Task<T> GetTransactionBodyById(Guid operationId);
         Task UpdateTransactionBodyAsync(T transactionBody);
         Task UpdateTransactionMeta(P transactionMeta);
+        Task<bool> CreateObservationAsync(Q transactionObservation);
+        Task<bool> IsTransactionObservedAsync(Q transactionObservation);
+        Task<bool> RemoveTransactionObservationAsync(Q transactionObservation);
     }
 }

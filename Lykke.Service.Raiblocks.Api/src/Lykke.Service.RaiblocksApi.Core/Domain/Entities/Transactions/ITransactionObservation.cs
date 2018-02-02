@@ -6,6 +6,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions
 {
     public interface ITransactionObservation
     {
-        string OperationId { get; set; }
+        Guid OperationId { get; set; }
     }
 }

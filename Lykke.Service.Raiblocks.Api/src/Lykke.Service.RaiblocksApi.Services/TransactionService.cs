@@ -24,6 +24,11 @@ namespace Lykke.Service.RaiblocksApi.Services
             _transactionObservationRepository = transactionObservationRepository;
         }
 
+        public async Task<bool> CreateObservationAsync(Q transactionObservation)
+        {
+            return await _transactionObservationRepository.CreateIfNotExistsAsync(transactionObservation);
+        }
+
         public async Task<T> GetTransactionBodyById(Guid operationId)
         {
             return await _transactionBodyRepository.GetAsync(operationId.ToString());
@@ -32,6 +37,16 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<P> GetTransactionMeta(string id)
         {
             return await _transactionMetaRepository.GetAsync(id);
+        }
+
+        public async Task<bool> IsTransactionObservedAsync(Q transactionObservation)
+        {
+            return await _transactionObservationRepository.IsExistAsync(transactionObservation);
+        }
+
+        public async Task<bool> RemoveTransactionObservationAsync(Q transactionObservation)
+        {
+            return await _transactionObservationRepository.DeleteIfExistAsync(transactionObservation);
         }
 
         public async Task<bool> SaveTransactionBody(T transactionBody)

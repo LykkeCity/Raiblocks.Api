@@ -133,6 +133,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
             await _transactionService.UpdateTransactionMeta(txMeta);
 
+            TransactionObservation transactionObservation = new TransactionObservation
+            {
+                OperationId = broadcastTransactionRequest.OperationId
+            };
+
+            await _transactionService.CreateObservationAsync(transactionObservation);
+
             return Ok(response);
 
         }
@@ -191,9 +198,16 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("DeleteBroadcastedTransaction")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public IActionResult DeleteBroadcastedTransaction(string operationId)
+        public async Task<IActionResult> DeleteBroadcastedTransactionAsync(string operationId)
         {
-            throw new NotImplementedException();
+            TransactionObservation transactionObservation = new TransactionObservation
+            {
+                OperationId = new Guid(operationId)
+            };
+            if (await _transactionService.IsTransactionObservedAsync(transactionObservation) && await _transactionService.RemoveTransactionObservationAsync(transactionObservation))
+                return Ok();
+            else
+                return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         #region NotImplemented
