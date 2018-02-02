@@ -115,6 +115,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transaction with specified operationId and signedTransaction has already been broadcasted"));
             }
 
+            txMeta.State = TransactionState.Signed;
             await _transactionService.UpdateTransactionMeta(txMeta);
 
             TransactionObservation transactionObservation = new TransactionObservation
