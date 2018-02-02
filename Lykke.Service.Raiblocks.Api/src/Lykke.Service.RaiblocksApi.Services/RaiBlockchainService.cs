@@ -50,7 +50,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             return result.Balances.ToDictionary(x => x.Key, x => x.Value.ToString());
         }
 
-        public async Task<string> GetAddresBalance(string address)
+        public async Task<string> GetAddressBalanceAsync(string address)
         {
             var result = await _raiBlocksRpc.GetBalanceAsync(new RaiAddress(address));
             return result.Balance.ToString();
@@ -68,6 +68,12 @@ namespace Lykke.Service.RaiblocksApi.Services
                 return false;
             }
 
+        }
+
+        public async Task<long> GetAddressBlockCountAsync(string address)
+        {
+            var result = await _raiBlocksRpc.GetAccountBlockCountAsync(new RaiAddress(address));
+            return result.BlockCount;
         }
     }
 }

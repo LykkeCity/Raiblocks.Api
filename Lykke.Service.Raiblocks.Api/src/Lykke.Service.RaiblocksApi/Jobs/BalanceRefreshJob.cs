@@ -43,7 +43,8 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                 {
                     await _balanceService.AddBalance(new AddressBalance {
                         Address = balance.Key,
-                        Balance = balance.Value
+                        Balance = balance.Value,
+                        Block = await _blockchainService.GetAddressBlockCountAsync(balance.Key)
                     });
                 };
             } while (continuation != null);

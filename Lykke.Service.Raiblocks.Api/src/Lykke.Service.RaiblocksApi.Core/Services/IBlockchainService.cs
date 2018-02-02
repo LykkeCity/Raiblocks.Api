@@ -13,6 +13,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         Task<bool> IsAddressValidAsync(string address);
 
         Task<string> CreateUnsignSendTransaction(string address, string destination, string amount);
-        Task<string> GetAddressBalance(string toAddress);
+        Task<string> GetAddressBalanceAsync(string toAddress);
+        Task<Int64> GetAddressBlockCountAsync(string key);
     }
 }

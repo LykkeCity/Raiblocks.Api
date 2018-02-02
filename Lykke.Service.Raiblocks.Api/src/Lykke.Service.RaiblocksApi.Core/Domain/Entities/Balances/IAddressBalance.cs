@@ -11,5 +11,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances
         string AssetId { get; }
 
         string Balance { get; set; }
+
+        Int64 Block { get; set; }
     }
 }
