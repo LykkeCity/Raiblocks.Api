@@ -24,6 +24,15 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories
             _tableStorage = AzureTableStorage<T>.Create(connectionStringManager, this.GetType().Name, log);
         }
 
+        public Task UpdateAsync(T item)
+        {
+            if (item.PartitionKey == null)
+            {
+                item.PartitionKey = DefaultPartitionKey();
+            }
+            return _tableStorage.InsertOrReplaceAsync(item);
+        }
+
         public async Task<bool> CreateIfNotExistsAsync(T item)
         {
             if (item.PartitionKey == null)

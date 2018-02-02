@@ -92,10 +92,49 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpPost("broadcast")]
         [SwaggerOperation("BroadcastSignedTransaction")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
-        public IActionResult BroadcastSignedTransaction([FromBody] BroadcastTransactionRequest broadcastTransactionRequest)
+        [ProducesResponseType(typeof(BroadcastTransactionResponse), (int)HttpStatusCode.Conflict)]
+        public async Task<IActionResult> BroadcastSignedTransactionAsync([FromBody] BroadcastTransactionRequest broadcastTransactionRequest)
         {
-            throw new NotImplementedException();
+            TransactionBody transactionBody = await _transactionService.GetTransactionBodyById(broadcastTransactionRequest.OperationId);
+            if (transactionBody == null)
+            {
+                transactionBody = new TransactionBody
+                {
+                    OperationId = broadcastTransactionRequest.OperationId
+                };
+            }
+
+            transactionBody.SignedTransaction = broadcastTransactionRequest.SignedTransaction;
+
+            await _transactionService.UpdateTransactionBodyAsync(transactionBody);
+
+            var txMeta = await _transactionService.GetTransactionMeta(broadcastTransactionRequest.OperationId.ToString());
+
+            if (txMeta.State == TransactionState.Breadcasted || txMeta.State == TransactionState.Confirmed)
+            {
+                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transaction with specified operationId and signedTransaction has already been broadcasted"));
+            }
+
+            var result = await _blockchainService.BroadcastSignedTransactionAsync(transactionBody.SignedTransaction);
+
+            var response = new BroadcastTransactionResponse();
+            if (result.error == null)
+            {
+                txMeta.Hash = result.hash;
+                txMeta.State = TransactionState.Breadcasted;
+                txMeta.BroadcastTimestamp = DateTime.Now;
+            }
+            else
+            {
+                txMeta.Error = result.error;
+                txMeta.State = TransactionState.Failed;
+                response.ErrorCode = TransactionExecutionError.Unknown;
+            }
+
+            await _transactionService.UpdateTransactionMeta(txMeta);
+
+            return Ok(response);
+
         }
 
         /// <summary>

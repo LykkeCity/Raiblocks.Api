@@ -15,5 +15,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         Task<bool> SaveTransactionMeta(P transactionMeta);
         Task<bool> SaveTransactionBody(T transactionBody);
         Task<T> GetTransactionBodyById(Guid operationId);
+        Task UpdateTransactionBodyAsync(T transactionBody);
+        Task UpdateTransactionMeta(P transactionMeta);
     }
 }

@@ -75,5 +75,11 @@ namespace Lykke.Service.RaiblocksApi.Services
             var result = await _raiBlocksRpc.GetAccountBlockCountAsync(new RaiAddress(address));
             return result.BlockCount;
         }
+
+        public async Task<(string, string)> BroadcastSignedTransactionAsync(string signedTransaction)
+        {
+            var result = await _raiBlocksRpc.ProcessBlock(signedTransaction);
+            return (result.Hash, result.Error);
+        }
     }
 }

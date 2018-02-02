@@ -43,5 +43,15 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             return await _transactionMetaRepository.CreateIfNotExistsAsync(transactionMeta);
         }
+
+        public Task UpdateTransactionBodyAsync(T transactionBody)
+        {
+            return _transactionBodyRepository.UpdateAsync(transactionBody);
+        }
+
+        public Task UpdateTransactionMeta(P transactionMeta)
+        {
+            return _transactionMetaRepository.UpdateAsync(transactionMeta);
+        }
     }
 }
