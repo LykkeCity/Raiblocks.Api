@@ -115,22 +115,6 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transaction with specified operationId and signedTransaction has already been broadcasted"));
             }
 
-            var result = await _blockchainService.BroadcastSignedTransactionAsync(transactionBody.SignedTransaction);
-
-            var response = new BroadcastTransactionResponse();
-            if (result.error == null)
-            {
-                txMeta.Hash = result.hash;
-                txMeta.State = TransactionState.Breadcasted;
-                txMeta.BroadcastTimestamp = DateTime.Now;
-            }
-            else
-            {
-                txMeta.Error = result.error;
-                txMeta.State = TransactionState.Failed;
-                response.ErrorCode = TransactionExecutionError.Unknown;
-            }
-
             await _transactionService.UpdateTransactionMeta(txMeta);
 
             TransactionObservation transactionObservation = new TransactionObservation
@@ -140,7 +124,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
             await _transactionService.CreateObservationAsync(transactionObservation);
 
-            return Ok(response);
+            return Ok(new BroadcastTransactionResponse());
 
         }
 
