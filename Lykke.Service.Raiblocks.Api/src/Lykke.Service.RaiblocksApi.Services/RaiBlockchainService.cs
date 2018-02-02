@@ -33,14 +33,23 @@ namespace Lykke.Service.RaiblocksApi.Services
             var raiDestination = new RaiAddress(destination);
             var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiAddress);
 
-            return await Task.Run(() => JsonConvert.SerializeObject(new BlockCreate {
-                Type = BlockCreate.BlockCreateType.send,
-                AccountNumber = raiAddress,
-                Destination = raiDestination,
-                Balance = accountInfo.Balance,
-                Amount = new RaiUnits.RaiRaw(amount),
-                Previous = accountInfo.Frontier
-            }));
+            return await Task.Run(async () =>
+            {
+                var txContext = JObject.FromObject(new BlockCreate
+                {
+                    Type = BlockCreate.BlockCreateType.send,
+                    AccountNumber = raiAddress,
+                    Destination = raiDestination,
+                    Balance = accountInfo.Balance,
+                    Amount = new RaiUnits.RaiRaw(amount),
+                    Previous = accountInfo.Frontier
+                });
+                var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
+
+                txContext.Add("work", work.Work);
+
+                return txContext.ToString();
+            });
         }
 
         public async Task<Dictionary<string, string>> GetAddressBalances(IEnumerable<string> balanceObservation)
@@ -78,7 +87,7 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<(string, string)> BroadcastSignedTransactionAsync(string signedTransaction)
         {
-            var result = await _raiBlocksRpc.ProcessBlock(signedTransaction);
+            var result = await _raiBlocksRpc.ProcessBlockAsync(signedTransaction);
             return (result.Hash, result.Error);
         }
     }
