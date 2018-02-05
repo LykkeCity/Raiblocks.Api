@@ -17,7 +17,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories
     public abstract class AzureRepository<T> : IRepository<T> 
         where T : AzureTableEntity, new()
     {
-        private INoSQLTableStorage<T> _tableStorage;
+        protected INoSQLTableStorage<T> _tableStorage;
 
         public AzureRepository(IReloadingManager<string> connectionStringManager, ILog log)
         {
@@ -50,11 +50,10 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories
             }
             return await _tableStorage.DeleteIfExistAsync(item.PartitionKey, item.RowKey);
         }
-
-
-        public async Task<(string continuation, IEnumerable<T> items)> GetAsync(int take = 100, string continuation = null)
+        
+        public async Task<(string continuation, IEnumerable<T> items)> GetAsync(int take = 100, string continuation = null, string partitionKey = null)
         {
-            var result = await _tableStorage.GetDataWithContinuationTokenAsync(DefaultPartitionKey(), take, continuation);
+            var result = await _tableStorage.GetDataWithContinuationTokenAsync(partitionKey ?? DefaultPartitionKey(), take, continuation);
             return (result.ContinuationToken, result.Entities);
         }
 
@@ -69,9 +68,9 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories
 
         public abstract string DefaultPartitionKey();
 
-        public async Task<T> GetAsync(string id)
+        public async Task<T> GetAsync(string id, string partitionKey = null)
         {
-            return await _tableStorage.GetDataAsync(DefaultPartitionKey(), id);
+            return await _tableStorage.GetDataAsync(partitionKey ?? DefaultPartitionKey(), id);
         }
     }
 }

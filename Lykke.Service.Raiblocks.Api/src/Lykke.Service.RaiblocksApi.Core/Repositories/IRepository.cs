@@ -13,9 +13,9 @@ namespace Lykke.Service.RaiblocksApi.Core.Repositories
 
         Task<bool> IsExistAsync(T item);
 
-        Task<(string continuation, IEnumerable<T> items)> GetAsync(int take = 100, string continuation = null);
+        Task<(string continuation, IEnumerable<T> items)> GetAsync(int take = 100, string continuation = null, string partitionKey = null);
 
-        Task<T> GetAsync(string id);
+        Task<T> GetAsync(string id, string partitionKey = null);
 
         Task UpdateAsync(T item);
     }

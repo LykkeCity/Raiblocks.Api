@@ -8,7 +8,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
@@ -16,10 +16,10 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     [Route("api/[controller]")]
     public class HistoryController : Controller
     {
-        private readonly IHistoryService<AddressHistoryEntry, AddressObservation> _historyService;
+        private readonly IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> _historyService;
         private readonly IAssetService _assetService;
 
-        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation> historyService, IAssetService assetService)
+        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> historyService, IAssetService assetService)
         {
             _historyService = historyService;
             _assetService = assetService;
@@ -79,9 +79,31 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet("from/{address}")]
         [SwaggerOperation("GetHistoryFrom")]
         [ProducesResponseType(typeof(IEnumerable<HistoricalTransactionContract>), (int)HttpStatusCode.OK)]
-        public IEnumerable<HistoricalTransactionContract> GetHistoryFrom(string address, [FromQuery]int take = 100, [FromQuery]string afterHash = null)
+        public async Task<IEnumerable<HistoricalTransactionContract>> GetHistoryFromAsync(string address, [FromQuery]int take = 100, [FromQuery]string afterHash = null)
         {
-            throw new NotImplementedException();
+            var history = await _historyService.GetAddressHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From), address, afterHash);
+            var internalHistory = await _historyService.GetAddressOperationHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From), address);
+
+            return history.Select(x => new HistoricalTransactionContract
+            {
+                Amount = x.Amount,
+                AssetId = _assetService.AssetId,
+                FromAddress = x.FromAddress,
+                ToAddress = x.ToAddress,
+                Hash = x.Hash,
+                //OperationId = null,
+                //Timestamp = null
+            }).Select(x =>
+            {
+                var operationHistory = internalHistory.Where(y => y.Hash == x.Hash).FirstOrDefault();
+
+                if (operationHistory != null)
+                {
+                    x.OperationId = operationHistory.OperationId;
+                }
+
+                return x;
+            });
         }
 
         /// <summary>

@@ -6,13 +6,11 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses
 {
     public interface IAddressHistoryEntry
     {
-        string OperationId { get; set; }
-
         string FromAddress { get; set; }
 
         string ToAddress { get; set; }
 
-        DateTime TransactionTimestamp { get; set; }
+        DateTime? TransactionTimestamp { get; set; }
 
         string AssetId { get; set; }
 
@@ -20,6 +18,8 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses
 
         string Hash { get; set; }
 
-        string BlockHash { get; set; }
+        Int64 BlockCount { get; set; }
+
+        AddressObservationType Type { get; set; }
     }
 }

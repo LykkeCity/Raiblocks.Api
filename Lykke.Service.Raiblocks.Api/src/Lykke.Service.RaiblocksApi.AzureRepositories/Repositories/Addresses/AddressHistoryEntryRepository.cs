@@ -1,10 +1,15 @@
-﻿using Common.Log;
+﻿using AzureStorage;
+using Common.Log;
+using Lykke.AzureStorage.Tables.Paging;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Addresses;
 using Lykke.SettingsReader;
+using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
 {
@@ -16,7 +21,25 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
 
         public override string DefaultPartitionKey()
         {
-            return nameof(AddressHistoryEntry);
+            return null;
+        }
+
+        public async Task<IEnumerable<AddressHistoryEntry>> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0)
+        {
+            var addressFieldName = partitionKey == Enum.GetName(typeof(AddressObservationType), AddressObservationType.From)
+                ? nameof(AddressHistoryEntry.FromAddress) : nameof(AddressHistoryEntry.ToAddress);
+
+            var page = new PagingInfo { ElementCount = take };
+            var query = new TableQuery<AddressHistoryEntry>()
+                 .Where(TableQuery.CombineFilters(
+                     TableQuery.GenerateFilterCondition(nameof(AddressHistoryEntry.PartitionKey), QueryComparisons.Equal, partitionKey),
+                     TableOperators.And,
+                     TableQuery.CombineFilters(
+                         TableQuery.GenerateFilterConditionForLong(nameof(AddressHistoryEntry.BlockCount), QueryComparisons.GreaterThan, afterBlockCount),
+                         TableOperators.And,
+                         TableQuery.GenerateFilterCondition(addressFieldName, QueryComparisons.Equal, address)
+                     )));
+            return await _tableStorage.ExecuteQueryWithPaginationAsync(query, page);
         }
     }
 }

@@ -70,7 +70,10 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .As<IAddressBalanceRepository<AddressBalance>>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
 
-
+            builder.RegisterType<AddressOperationHistoryEntryRepository>()
+                .As<IAddressOperationHistoryEntryRepository<AddressOperationHistoryEntry>>()
+                .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
+            
             builder.RegisterType<AddressHistoryEntryRepository>()
                 .As<IAddressHistoryEntryRepository<AddressHistoryEntry>>()
                 .WithParameter(TypedParameter.From(_settings.Nested(s => s.Db.DataConnString)));
@@ -96,8 +99,8 @@ namespace Lykke.Service.RaiblocksApi.Modules
             builder.RegisterType<BalanceService<BalanceObservation, AddressBalance>>()
                 .As<IBalanceService<BalanceObservation, AddressBalance>>();
 
-            builder.RegisterType<HistoryService<AddressHistoryEntry, AddressObservation>>()
-                .As<IHistoryService<AddressHistoryEntry, AddressObservation>>();
+            builder.RegisterType<HistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry>>()
+                .As<IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry>>();
 
             builder.RegisterType<TransactionService<TransactionBody, TransactionMeta, TransactionObservation>>()
                 .As<ITransactionService<TransactionBody, TransactionMeta, TransactionObservation>>();

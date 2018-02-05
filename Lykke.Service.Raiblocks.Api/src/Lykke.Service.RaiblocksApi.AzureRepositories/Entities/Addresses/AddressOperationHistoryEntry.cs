@@ -7,23 +7,13 @@ using System.Text;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
 {
-    public class AddressHistoryEntry : AzureTableEntity, IAddressHistoryEntry
+    public class AddressOperationHistoryEntry : AzureTableEntity, IAddressOperationHistoryEntry
     {
-        public string FromAddress { get; set; }
+        public Guid OperationId { get; set; }
 
-        public string ToAddress { get; set; }
-
-        public DateTime? TransactionTimestamp { get; set; }
-        
-        [IgnoreProperty]
-        public string AssetId { get; set; }
-
-        public string Amount { get; set; }
-
-        [IgnoreProperty]
         public string Hash { get => RowKey; set => RowKey = value; }
 
-        public long BlockCount { get; set; }
+        public string Address { get; set; }
 
         [IgnoreProperty]
         public AddressObservationType Type

@@ -1,4 +1,5 @@
-﻿using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
+﻿using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
 using Lykke.Service.RaiblocksApi.Core.Repositories;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
 using Lykke.Service.RaiblocksApi.Core.Services;
@@ -37,7 +38,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             {
                 var txContext = JObject.FromObject(new BlockCreate
                 {
-                    Type = BlockCreate.BlockCreateType.send,
+                    Type = BlockType.send,
                     AccountNumber = raiAddress,
                     Destination = raiDestination,
                     Balance = accountInfo.Balance,
@@ -89,6 +90,28 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             var result = await _raiBlocksRpc.ProcessBlockAsync(signedTransaction);
             return (result.Hash, result.Error);
+        }
+
+        public async Task<IEnumerable<(string from, string to, BigInteger amount, string hash)>> GetAddressHistoryAsync(string address, int take)
+        {
+            var result = await _raiBlocksRpc.GetAccountHistoryAsync(new RaiAddress(address), take);
+            return result.Entries.Select(x => {
+                if (x.Type == BlockType.send)
+                {
+                    return (address, x.RepresentativeBlock, x.Amount.Value, x.Frontier);
+                } else if (x.Type == BlockType.receive) {
+                    return (x.RepresentativeBlock, address, x.Amount.Value, x.Frontier);
+                } else
+                {
+                    throw new Exception("Unknown history type");
+                }
+            });
+        }
+
+        public async Task<(string frontier, long blockCount)> GetAddressInfoAsync(string address)
+        {
+            var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(new RaiAddress(address));
+            return (accountInfo.Frontier, accountInfo.BlockCount);
         }
     }
 }
