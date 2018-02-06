@@ -57,7 +57,7 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             IEnumerable<RaiAddress> accounts = balanceObservation.Select(x => new RaiAddress(x));
             var result = await _raiBlocksRpc.GetBalancesAsync(accounts);
-            return result.Balances.ToDictionary(x => x.Key, x => x.Value.ToString());
+            return result.Balances.ToDictionary(x => x.Key, x => x.Value.Balance.ToString());
         }
 
         public async Task<string> GetAddressBalanceAsync(string address)

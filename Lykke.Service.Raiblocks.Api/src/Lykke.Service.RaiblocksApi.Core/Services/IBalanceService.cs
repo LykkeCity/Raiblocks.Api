@@ -19,5 +19,9 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         Task<(string continuation, IEnumerable<P> items)> GetBalances(int take = 100, string continuation = null);
 
         Task<(string continuation, IEnumerable<T> items)> GetBalancesObservation(int take = 100, string continuation = null);
+
+        Task UpdateBalance(P item);
+
+        Task<bool> IsBalanceExist(P item);
     }
 }
