@@ -63,5 +63,9 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await _addressBalanceRepository.IsExistAsync(item);
         }
 
+        public async Task<bool> RemoveBalancenAsync(P item)
+        {
+            return await _addressBalanceRepository.DeleteIfExistAsync(item);
+        }
     }
 }

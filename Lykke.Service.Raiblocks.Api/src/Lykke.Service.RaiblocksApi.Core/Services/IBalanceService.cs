@@ -14,6 +14,8 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
 
         Task<bool> RemoveBalanceObservation(T item);
 
+        Task<bool> RemoveBalancenAsync(P item);
+
         Task<bool> IsBalanceObserved(T item);
 
         Task<(string continuation, IEnumerable<P> items)> GetBalances(int take = 100, string continuation = null);

@@ -5,6 +5,7 @@ using Lykke.Service.RaiblocksApi.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,11 +53,21 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                         if (await _balanceService.IsBalanceExist(addressBalance))
                         {
-                            await _balanceService.UpdateBalance(addressBalance);
+                            if (BigInteger.Parse(balance.Value) > 0)
+                            {
+                                await _balanceService.UpdateBalance(addressBalance);
+                            } else
+                            {
+                                await _balanceService.RemoveBalancenAsync(addressBalance);
+                            }
+                            
                         }
                         else
                         {
-                            await _balanceService.AddBalance(addressBalance);
+                            if (BigInteger.Parse(balance.Value) > 0)
+                            {
+                                await _balanceService.AddBalance(addressBalance);
+                            }
                         }
 
                     };
