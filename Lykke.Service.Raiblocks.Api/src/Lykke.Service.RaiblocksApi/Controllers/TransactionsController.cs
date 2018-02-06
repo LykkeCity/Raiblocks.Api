@@ -58,7 +58,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                     CreateTimestamp = DateTime.Now
                 };
 
-                var balance = await _blockchainService.GetAddressBalanceAsync(transactionMeta.ToAddress);
+                var balance = await _blockchainService.GetAddressBalanceAsync(transactionMeta.FromAddress);
                 if (BigInteger.Parse(balance) < BigInteger.Parse(transactionMeta.Amount))
                 {
                     error = TransactionExecutionError.NotEnoughtBalance;
