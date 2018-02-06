@@ -37,25 +37,30 @@ namespace Lykke.Service.RaiblocksApi.Jobs
             {
                 balancesObservation = await _balanceService.GetBalancesObservation(pageSize, continuation);
 
-                continuation = balancesObservation.continuation;
-
-                foreach (KeyValuePair<string, string> balance in await _blockchainService.GetAddressBalances(balancesObservation.items.Select(x => x.Address)))
+                if (balancesObservation.items.Any())
                 {
-                    var addressBalance = new AddressBalance {
-                        Address = balance.Key,
-                        Balance = balance.Value,
-                        Block = await _blockchainService.GetAddressBlockCountAsync(balance.Key)
+                    continuation = balancesObservation.continuation;
+
+                    foreach (KeyValuePair<string, string> balance in await _blockchainService.GetAddressBalances(balancesObservation.items.Select(x => x.Address)))
+                    {
+                        var addressBalance = new AddressBalance
+                        {
+                            Address = balance.Key,
+                            Balance = balance.Value,
+                            Block = await _blockchainService.GetAddressBlockCountAsync(balance.Key)
+                        };
+
+                        if (await _balanceService.IsBalanceExist(addressBalance))
+                        {
+                            await _balanceService.UpdateBalance(addressBalance);
+                        }
+                        else
+                        {
+                            await _balanceService.AddBalance(addressBalance);
+                        }
+
                     };
-
-                    if (await _balanceService.IsBalanceExist(addressBalance))
-                    {
-                        await _balanceService.UpdateBalance(addressBalance);
-                    } else
-                    {
-                        await _balanceService.AddBalance(addressBalance);
-                    }
-
-                };
+                }
             } while (continuation != null);
             await _log.WriteInfoAsync(nameof(BalanceRefreshJob), $"Env: {Program.EnvInfo}", "Refresh balances finished", DateTime.Now);
         }
