@@ -83,7 +83,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 balances.items.Select(b => new WalletBalanceContract {
                     Address = b.Address,
                     Balance = b.Balance, 
-                    AssetId = _assetService.AssetId
+                    AssetId = _assetService.AssetId,
+                    Block = b.Block
                 }).ToArray());
 
         }
