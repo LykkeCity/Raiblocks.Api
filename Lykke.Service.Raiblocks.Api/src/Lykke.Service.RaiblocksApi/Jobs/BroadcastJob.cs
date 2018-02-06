@@ -55,7 +55,8 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                         } else
                         {
                             txMeta.State = TransactionState.Confirmed;
-
+                            txMeta.CompleteTimestamp = DateTime.Now;
+                            txMeta.Hash = broadcactResult.hash;
                             AddressOperationHistoryEntry operationHistoryEntry = new AddressOperationHistoryEntry
                             {
                                 OperationId = transactionObservation.OperationId,

@@ -116,6 +116,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             }
 
             txMeta.State = TransactionState.Signed;
+            txMeta.BroadcastTimestamp = DateTime.Now;
             await _transactionService.UpdateTransactionMeta(txMeta);
 
             TransactionObservation transactionObservation = new TransactionObservation
