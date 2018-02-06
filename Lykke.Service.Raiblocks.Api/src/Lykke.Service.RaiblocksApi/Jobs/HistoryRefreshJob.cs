@@ -45,37 +45,42 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                     var addressBlockCount = (int)addressInfo.blockCount;
 
-                    var currentHistoryTo = await _historyService.GetAddressHistoryAsync(addressBlockCount, null, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To));
-                    var currentHistoryFrom = await _historyService.GetAddressHistoryAsync(addressBlockCount, null, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From));
-
-                    if (currentHistoryTo.continuation != null || currentHistoryFrom.continuation != null)
+                    if (addressBlockCount > 0)
                     {
-                        await _log.WriteErrorAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", $"Block count less then db records. Address: {addressObservation.Address}", null);
-                    }
+                        var currentHistoryTo = await _historyService.GetAddressHistoryAsync(addressBlockCount, null, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To));
+                        var currentHistoryFrom = await _historyService.GetAddressHistoryAsync(addressBlockCount, null, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From));
 
-                    var latestBlockNum = currentHistoryTo.items.Count() + currentHistoryFrom.items.Count();
-
-                    if (addressBlockCount > latestBlockNum)
-                    {
-                        var history = await _blockchainService.GetAddressHistoryAsync(addressObservation.Address, addressBlockCount - latestBlockNum);
-
-                        var addressHistoryEntries = history.Reverse().Select((x, index)=> new AddressHistoryEntry {
-                            FromAddress = x.from,
-                            ToAddress = x.to,
-                            Amount = x.amount.ToString(),
-                            Hash = x.hash,
-                            Type = x.from == addressObservation.Address ? AddressObservationType.From : AddressObservationType.To,
-                            BlockCount = index + latestBlockNum + 1
-                        });
-
-                        foreach (var addressHistoryEntry in addressHistoryEntries)
+                        if (currentHistoryTo.continuation != null || currentHistoryFrom.continuation != null)
                         {
-                            var result = _historyService.InsertAddressHistoryObservation(addressHistoryEntry);
+                            await _log.WriteErrorAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", $"Block count less then db records. Address: {addressObservation.Address}", null);
                         }
 
-                    } else
-                    {
-                        await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "All history is already sync");
+                        var latestBlockNum = currentHistoryTo.items.Count() + currentHistoryFrom.items.Count();
+
+                        if (addressBlockCount > latestBlockNum)
+                        {
+                            var history = await _blockchainService.GetAddressHistoryAsync(addressObservation.Address, addressBlockCount - latestBlockNum);
+
+                            var addressHistoryEntries = history.Reverse().Select((x, index) => new AddressHistoryEntry
+                            {
+                                FromAddress = x.from,
+                                ToAddress = x.to,
+                                Amount = x.amount.ToString(),
+                                Hash = x.hash,
+                                Type = x.from == addressObservation.Address ? AddressObservationType.From : AddressObservationType.To,
+                                BlockCount = index + latestBlockNum + 1
+                            });
+
+                            foreach (var addressHistoryEntry in addressHistoryEntries)
+                            {
+                                var result = _historyService.InsertAddressHistoryObservation(addressHistoryEntry);
+                            }
+
+                        }
+                        else
+                        {
+                            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "All history is already sync");
+                        }
                     }
                 }
                 
