@@ -8,65 +8,71 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
-    public class TransactionService<T, P, Q> : ITransactionService<T, P, Q>
-        where T : ITransactionBody
-        where P : ITransactionMeta
-        where Q : ITransactionObservation
+    public class TransactionService<TransactionBody, TransactionMeta, TransactionObservation> : ITransactionService<TransactionBody, TransactionMeta, TransactionObservation>
+        where TransactionBody : ITransactionBody
+        where TransactionMeta : ITransactionMeta
+        where TransactionObservation : ITransactionObservation
     {
-        private readonly ITransactionBodyRepository<T> _transactionBodyRepository;
-        private readonly ITransactionMetaRepository<P> _transactionMetaRepository;
-        private readonly ITransactionObservationRepository<Q> _transactionObservationRepository;
+        private readonly ITransactionBodyRepository<TransactionBody> _transactionBodyRepository;
+        private readonly ITransactionMetaRepository<TransactionMeta> _transactionMetaRepository;
+        private readonly ITransactionObservationRepository<TransactionObservation> _transactionObservationRepository;
 
-        public TransactionService(ITransactionBodyRepository<T> transactionBodyRepository, ITransactionMetaRepository<P> transactionMetaRepository, ITransactionObservationRepository<Q> transactionObservationRepository)
+        public TransactionService(ITransactionBodyRepository<TransactionBody> transactionBodyRepository, ITransactionMetaRepository<TransactionMeta> transactionMetaRepository, ITransactionObservationRepository<TransactionObservation> transactionObservationRepository)
         {
             _transactionBodyRepository = transactionBodyRepository;
             _transactionMetaRepository = transactionMetaRepository;
             _transactionObservationRepository = transactionObservationRepository;
         }
 
-        public async Task<bool> CreateObservationAsync(Q transactionObservation)
+        public async Task<bool> CreateObservationAsync(TransactionObservation transactionObservation)
         {
             return await _transactionObservationRepository.CreateIfNotExistsAsync(transactionObservation);
         }
 
-        public async Task<T> GetTransactionBodyById(Guid operationId)
+        public async Task<TransactionBody> GetTransactionBodyById(Guid operationId)
         {
             return await _transactionBodyRepository.GetAsync(operationId.ToString());
         }
 
-        public async Task<P> GetTransactionMeta(string id)
+        public async Task<TransactionMeta> GetTransactionMeta(string id)
         {
             return await _transactionMetaRepository.GetAsync(id);
         }
 
-        public async Task<bool> IsTransactionObservedAsync(Q transactionObservation)
+        public async Task<(string continuation, IEnumerable<TransactionObservation> items)> GetTransactionObservation(int pageSize, string continuation)
+        {
+            return await _transactionObservationRepository.GetAsync(pageSize, continuation);
+        }
+
+        public async Task<bool> IsTransactionObservedAsync(TransactionObservation transactionObservation)
         {
             return await _transactionObservationRepository.IsExistAsync(transactionObservation);
         }
 
-        public async Task<bool> RemoveTransactionObservationAsync(Q transactionObservation)
+        public async Task<bool> RemoveTransactionObservationAsync(TransactionObservation transactionObservation)
         {
             return await _transactionObservationRepository.DeleteIfExistAsync(transactionObservation);
         }
 
-        public async Task<bool> SaveTransactionBody(T transactionBody)
+        public async Task<bool> SaveTransactionBody(TransactionBody transactionBody)
         {
             return await _transactionBodyRepository.CreateIfNotExistsAsync(transactionBody);
         }
 
-        public async Task<bool> SaveTransactionMeta(P transactionMeta)
+        public async Task<bool> SaveTransactionMeta(TransactionMeta transactionMeta)
         {
             return await _transactionMetaRepository.CreateIfNotExistsAsync(transactionMeta);
         }
 
-        public Task UpdateTransactionBodyAsync(T transactionBody)
+        public Task UpdateTransactionBodyAsync(TransactionBody transactionBody)
         {
             return _transactionBodyRepository.UpdateAsync(transactionBody);
         }
 
-        public Task UpdateTransactionMeta(P transactionMeta)
+        public Task UpdateTransactionMeta(TransactionMeta transactionMeta)
         {
             return _transactionMetaRepository.UpdateAsync(transactionMeta);
         }
+
     }
 }

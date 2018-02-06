@@ -44,13 +44,14 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             if (address != null && partitionKey != null)
             {
-                if(afterHash != null)
+                if (afterHash != null)
                 {
                     var afterRecord = await _addressHistoryEntryRepository.GetAsync(afterHash, partitionKey);
                     var afterBlockCount = afterRecord.BlockCount;
 
                     return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address, afterBlockCount);
-                } else
+                }
+                else
                 {
                     return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address);
                 }
@@ -80,6 +81,11 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<IEnumerable<AddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey, string address)
         {
             return await _addressOperationHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address);
+        }
+
+        public async Task<bool> AddAddressOperationHistoryAsync(AddressOperation operationHistoryEntry)
+        {
+            return await _addressOperationHistoryEntryRepository.CreateIfNotExistsAsync(operationHistoryEntry);
         }
     }
 }

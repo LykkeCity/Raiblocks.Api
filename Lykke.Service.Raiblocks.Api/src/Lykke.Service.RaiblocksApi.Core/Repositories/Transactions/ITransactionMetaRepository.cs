@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Transactions
 {
-    public interface ITransactionMetaRepository<T> : IRepository<T>
+    public interface ITransactionMetaRepository<TransactionBody> : IRepository<TransactionBody>
     {
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
 {
-    public interface IAddressObservationRepository<T> : IRepository<T>
+    public interface IAddressObservationRepository<TransactionBody> : IRepository<TransactionBody>
     {
 
     }

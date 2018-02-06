@@ -20,7 +20,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
 
         public override string DefaultPartitionKey()
         {
-            return null;
+            return nameof(AddressOperationHistoryEntry);
         }
 
         public async Task<IEnumerable<AddressOperationHistoryEntry>> GetByAddressAsync(int take, string partitionKey, string address)

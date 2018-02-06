@@ -6,19 +6,20 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Services
 {
-    public interface ITransactionService<T, P, Q>
-        where T : ITransactionBody
-        where P : ITransactionMeta
-        where Q : ITransactionObservation
+    public interface ITransactionService<TransactionBody, TransactionMeta, TransactionObservation>
+        where TransactionBody : ITransactionBody
+        where TransactionMeta : ITransactionMeta
+        where TransactionObservation : ITransactionObservation
     {
-        Task<P> GetTransactionMeta(string id);
-        Task<bool> SaveTransactionMeta(P transactionMeta);
-        Task<bool> SaveTransactionBody(T transactionBody);
-        Task<T> GetTransactionBodyById(Guid operationId);
-        Task UpdateTransactionBodyAsync(T transactionBody);
-        Task UpdateTransactionMeta(P transactionMeta);
-        Task<bool> CreateObservationAsync(Q transactionObservation);
-        Task<bool> IsTransactionObservedAsync(Q transactionObservation);
-        Task<bool> RemoveTransactionObservationAsync(Q transactionObservation);
+        Task<TransactionMeta> GetTransactionMeta(string id);
+        Task<bool> SaveTransactionMeta(TransactionMeta transactionMeta);
+        Task<bool> SaveTransactionBody(TransactionBody transactionBody);
+        Task<TransactionBody> GetTransactionBodyById(Guid operationId);
+        Task UpdateTransactionBodyAsync(TransactionBody transactionBody);
+        Task UpdateTransactionMeta(TransactionMeta transactionMeta);
+        Task<bool> CreateObservationAsync(TransactionObservation transactionObservation);
+        Task<bool> IsTransactionObservedAsync(TransactionObservation transactionObservation);
+        Task<bool> RemoveTransactionObservationAsync(TransactionObservation transactionObservation);
+        Task<(string continuation, IEnumerable<TransactionObservation> items)> GetTransactionObservation(int pageSize, string continuation);
     }
 }

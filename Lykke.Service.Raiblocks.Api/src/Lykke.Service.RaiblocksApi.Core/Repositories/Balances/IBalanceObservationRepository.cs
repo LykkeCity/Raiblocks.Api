@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Balances
 {
-    public interface IBalanceObservationRepository<T> : IRepository<T>
+    public interface IBalanceObservationRepository<TransactionBody> : IRepository<TransactionBody>
     {
 
     }

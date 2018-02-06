@@ -16,5 +16,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         Task<(string continuation, IEnumerable<AddressHistory> items)> GetAddressHistoryAsync(int take, string continuation, string partitionKey = null);
         Task<bool> InsertAddressHistoryObservation(AddressHistory addressHistoryEntry);
         Task<IEnumerable<AddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey, string address);
+        Task<bool> AddAddressOperationHistoryAsync(AddressOperation operationHistoryEntry);
     }
 }

@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
 {
-    public interface IAddressHistoryEntryRepository<T> : IRepository<T>
+    public interface IAddressHistoryEntryRepository<TransactionBody> : IRepository<TransactionBody>
     {
-        Task<IEnumerable<T>> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0);
+        Task<IEnumerable<TransactionBody>> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0);
     }
 }
