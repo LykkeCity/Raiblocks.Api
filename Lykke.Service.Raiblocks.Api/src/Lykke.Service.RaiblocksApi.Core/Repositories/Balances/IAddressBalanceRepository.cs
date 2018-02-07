@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Balances
 {
-    public interface IAddressBalanceRepository<T> : IRepository<T>
+    public interface IAddressBalanceRepository<AddressBalance> : IRepository<AddressBalance>
+        where AddressBalance : IAddressBalance
     {
     }
 }

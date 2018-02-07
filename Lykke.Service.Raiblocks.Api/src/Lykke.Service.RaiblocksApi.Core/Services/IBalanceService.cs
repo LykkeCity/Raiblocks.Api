@@ -6,24 +6,26 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Services
 {
-    public interface IBalanceService<T, P>
+    public interface IBalanceService<BalanceObservation, Balance>
+        where BalanceObservation: IBalanceObservation
+        where Balance : IAddressBalance
     {
-        Task<bool> AddBalanceObservation(T item);
+        Task<bool> AddBalanceObservation(BalanceObservation item);
 
-        Task<bool> AddBalance(P item);
+        Task<bool> AddBalance(Balance item);
 
-        Task<bool> RemoveBalanceObservation(T item);
+        Task<bool> RemoveBalanceObservation(BalanceObservation item);
 
-        Task<bool> RemoveBalancenAsync(P item);
+        Task<bool> RemoveBalancenAsync(Balance item);
 
-        Task<bool> IsBalanceObserved(T item);
+        Task<bool> IsBalanceObserved(BalanceObservation item);
 
-        Task<(string continuation, IEnumerable<P> items)> GetBalances(int take = 100, string continuation = null);
+        Task<(string continuation, IEnumerable<Balance> items)> GetBalances(int take = 100, string continuation = null);
 
-        Task<(string continuation, IEnumerable<T> items)> GetBalancesObservation(int take = 100, string continuation = null);
+        Task<(string continuation, IEnumerable<BalanceObservation> items)> GetBalancesObservation(int take = 100, string continuation = null);
 
-        Task UpdateBalance(P item);
+        Task UpdateBalance(Balance item);
 
-        Task<bool> IsBalanceExist(P item);
+        Task<bool> IsBalanceExist(Balance item);
     }
 }
