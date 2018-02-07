@@ -77,7 +77,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                             foreach (var addressHistoryEntry in addressHistoryEntries)
                             {
-                                var result = _historyService.InsertAddressHistoryObservation(addressHistoryEntry);
+                                var result = _historyService.InsertAddressHistory(addressHistoryEntry);
                             }
 
                         }

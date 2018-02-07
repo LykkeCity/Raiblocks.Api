@@ -29,7 +29,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await _addressObservationRepository.CreateIfNotExistsAsync(addressObservation);
         }
 
-        public async Task<bool> InsertAddressHistoryObservation(AddressHistory addressHistoryEntry)
+        public async Task<bool> InsertAddressHistory(AddressHistory addressHistoryEntry)
         {
             return await _addressHistoryEntryRepository.CreateIfNotExistsAsync(addressHistoryEntry);
         }

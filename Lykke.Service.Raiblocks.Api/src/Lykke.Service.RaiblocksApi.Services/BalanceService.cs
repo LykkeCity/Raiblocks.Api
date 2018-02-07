@@ -17,14 +17,10 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public BalanceService(IBalanceObservationRepository<BalanceObservation> balanceObservationRepository, IAddressBalanceRepository<Balance> addressBalanceRepository)
         {
-            this._balanceObservationRepository = balanceObservationRepository;
-            this._addressBalanceRepository = addressBalanceRepository;
+            _balanceObservationRepository = balanceObservationRepository;
+            _addressBalanceRepository = addressBalanceRepository;
         }
 
-        public BalanceService(IBalanceObservationRepository<BalanceObservation> balanceObservationRepository)
-        {
-            this._balanceObservationRepository = balanceObservationRepository;
-        }
         public async Task<bool> AddBalanceObservation(BalanceObservation item)
         {
             return await _balanceObservationRepository.CreateIfNotExistsAsync(item);
