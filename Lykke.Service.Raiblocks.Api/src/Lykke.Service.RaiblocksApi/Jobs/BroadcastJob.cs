@@ -28,6 +28,10 @@ namespace Lykke.Service.RaiblocksApi.Jobs
             _historyService = historyService;
         }
 
+        /// <summary>
+        /// Job for publish signed transaction
+        /// </summary>
+        /// <returns></returns>
         [TimerTrigger("00:00:10")]
         public async Task BroadcastTransactions()
         {

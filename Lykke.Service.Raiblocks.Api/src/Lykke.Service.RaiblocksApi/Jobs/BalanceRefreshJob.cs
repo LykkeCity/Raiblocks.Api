@@ -27,6 +27,10 @@ namespace Lykke.Service.RaiblocksApi.Jobs
             _balanceService = balanceService;
         }
 
+        /// <summary>
+        /// Refresh balances for observed addresses
+        /// </summary>
+        /// <returns></returns>
         [TimerTrigger("00:00:10")]
         public async Task RefreshBalances()
         {

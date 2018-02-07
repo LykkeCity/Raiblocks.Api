@@ -25,6 +25,10 @@ namespace Lykke.Service.RaiblocksApi.Jobs
             _historyService = historyService;
         }
 
+        /// <summary>
+        /// Job for update history for observed addresses
+        /// </summary>
+        /// <returns></returns>
         [TimerTrigger("00:00:10")]
         public async Task RefreshHistory()
         {
