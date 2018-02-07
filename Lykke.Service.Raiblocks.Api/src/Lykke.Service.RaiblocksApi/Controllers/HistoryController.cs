@@ -116,9 +116,31 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet("to/{address}")]
         [SwaggerOperation("GetHistoryTo")]
         [ProducesResponseType(typeof(IEnumerable<HistoricalTransactionContract>), (int)HttpStatusCode.OK)]
-        public IEnumerable<HistoricalTransactionContract> GetHistoryTo(string address, [FromQuery]int take = 100, [FromQuery]string afterHash = null)
+        public async Task<IEnumerable<HistoricalTransactionContract>> GetHistoryToAsync(string address, [FromQuery]int take = 100, [FromQuery]string afterHash = null)
         {
-            throw new NotImplementedException();
+            var history = await _historyService.GetAddressHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address, afterHash);
+            var internalHistory = await _historyService.GetAddressOperationHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address);
+
+            return history.Select(x => new HistoricalTransactionContract
+            {
+                Amount = x.Amount,
+                AssetId = _assetService.AssetId,
+                FromAddress = x.FromAddress,
+                ToAddress = x.ToAddress,
+                Hash = x.Hash,
+                //OperationId = null,
+                //Timestamp = null
+            }).Select(x =>
+            {
+                var operationHistory = internalHistory.Where(y => y.Hash == x.Hash).FirstOrDefault();
+
+                if (operationHistory != null)
+                {
+                    x.OperationId = operationHistory.OperationId;
+                }
+
+                return x;
+            });
         }
 
         /// <summary>
