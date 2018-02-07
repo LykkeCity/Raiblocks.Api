@@ -40,9 +40,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 Address = address,
             };
             if (!await _balanceService.IsBalanceObserved(balanceObservation) && await _balanceService.AddBalanceObservation(balanceObservation))
+            {
                 return Ok();
+            }
             else
+            {
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Specified address is already observed"));
+            }
         }
 
         /// <summary>

@@ -37,7 +37,6 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpPost("single")]
         [SwaggerOperation("BuildNotSignedTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
         public async Task<IActionResult> BuildNotSignedSingleTransaction([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
         {
             TransactionBody transactionBody = await _transactionService.GetTransactionBodyById(buildTransactionRequest.OperationId);
@@ -110,7 +109,10 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
             var txMeta = await _transactionService.GetTransactionMeta(broadcastTransactionRequest.OperationId.ToString());
 
-            if (txMeta.State == TransactionState.Breadcasted || txMeta.State == TransactionState.Confirmed)
+            if (txMeta.State == TransactionState.Broadcasted 
+                || txMeta.State == TransactionState.Confirmed 
+                || txMeta.State == TransactionState.Failed
+                || txMeta.State == TransactionState.BlockChainFailed)
             {
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transaction with specified operationId and signedTransaction has already been broadcasted"));
             }
@@ -173,7 +175,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 });
             }
             else
-                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Specified transaction not found"));
+                return StatusCode((int)HttpStatusCode.NoContent, ErrorResponse.Create("Specified transaction not found"));
         }
 
         /// <summary>
