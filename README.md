@@ -36,6 +36,6 @@ dotnet run
 
 Для хранения донных используется Azure Table Storage.
 
-![Схема данных](https://github.com/mao29/Raiblocks.ApiService/blob/dev/Lykke.Service.Raiblocks.Api/ClassDiagram.jpg?raw=true)
+![Схема данных](https://github.com/mao29/Raiblocks.ApiService/blob/dev/Lykke.Service.Raiblocks.Api/ClassDiagram.jpg)
 
 
