@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="4.4.2" />
+    <PackageReference Include="Polly-Signed" Version="5.8.0" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
   </ItemGroup>
 
