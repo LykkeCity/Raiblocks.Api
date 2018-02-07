@@ -64,7 +64,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                                 Address = txMeta.FromAddress,
                                 Type = Core.Domain.Entities.Addresses.AddressObservationType.From
                             };
-
+                            txMeta.BlockCount = (await _blockchainService.GetAddressInfoAsync(operationHistoryEntry.Address)).blockCount;
                             await _historyService.AddAddressOperationHistoryAsync(operationHistoryEntry);
                         }
                         await _transactionService.UpdateTransactionMeta(txMeta);

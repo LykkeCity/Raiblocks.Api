@@ -37,7 +37,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions
 
         public DateTime? CompleteTimestamp { get; set; }
 
-
+        public long BlockCount { get; set; }
     }
 
 }

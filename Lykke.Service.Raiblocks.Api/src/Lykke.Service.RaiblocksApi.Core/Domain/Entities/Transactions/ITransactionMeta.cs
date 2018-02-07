@@ -24,6 +24,8 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions
 
         string Hash { get; set; }
 
+        Int64 BlockCount { get; set; }
+
         DateTime? CreateTimestamp { get; set; }
 
         DateTime? SignTimestamp { get; set; }

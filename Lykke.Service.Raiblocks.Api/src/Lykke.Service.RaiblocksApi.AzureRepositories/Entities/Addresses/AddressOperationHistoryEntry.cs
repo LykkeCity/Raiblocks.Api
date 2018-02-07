@@ -11,6 +11,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
     {
         public Guid OperationId { get; set; }
 
+        [IgnoreProperty]
         public string Hash { get => RowKey; set => RowKey = value; }
 
         public string Address { get; set; }
