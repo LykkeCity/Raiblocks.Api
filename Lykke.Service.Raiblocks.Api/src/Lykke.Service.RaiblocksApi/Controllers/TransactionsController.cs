@@ -168,7 +168,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                     Amount = txMeta.Amount,
                     Fee = "0",
                     Hash = txMeta.Hash,
-                    Error = txMeta.Error
+                    Error = txMeta.Error,
+                    Block = txMeta.BlockCount
                 });
             }
             else
