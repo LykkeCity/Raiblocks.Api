@@ -81,5 +81,26 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="continuation">ontinuation data</param>
         /// <returns>ontinuation data and transaction observation</returns>
         Task<(string continuation, IEnumerable<TTransactionObservation> items)> GetTransactionObservationAsync(int pageSize, string continuation);
+
+        /// <summary>
+        /// Get new or exist unsigned transaction
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <param name="fromAddress">Address from</param>
+        /// <param name="toAddress">Address to</param>
+        /// <param name="amount">Amount</param>
+        /// <param name="assetId">Asset Id</param>
+        /// <param name="includeFee">Include fee</param>
+        /// <returns>Unsigned transaction context</returns>
+        Task<string> GetUnsignSendTransactionAsync(Guid operationId, string fromAddress, string toAddress,
+            string amount, string assetId = "XBR", bool includeFee = false);
+
+        /// <summary>
+        /// Publish signed transaction to network
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <param name="signedTransaction">Signed transaction</param>
+        /// <returns>true if publish, false if already publish</returns>
+        Task<bool> BroadcastSignedTransactionAsync(Guid operationId, string signedTransaction);
     }
 }

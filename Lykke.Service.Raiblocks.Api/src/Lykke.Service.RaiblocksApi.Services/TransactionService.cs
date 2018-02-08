@@ -9,19 +9,21 @@ using System.Threading.Tasks;
 namespace Lykke.Service.RaiblocksApi.Services
 {
     public class TransactionService<TTransactionBody, TTransactionMeta, TTransactionObservation> : ITransactionService<TTransactionBody, TTransactionMeta, TTransactionObservation>
-        where TTransactionBody : ITransactionBody
-        where TTransactionMeta : ITransactionMeta
-        where TTransactionObservation : ITransactionObservation
+        where TTransactionBody : ITransactionBody, new()
+        where TTransactionMeta : ITransactionMeta, new()
+        where TTransactionObservation : ITransactionObservation, new()
     {
         private readonly ITransactionBodyRepository<TTransactionBody> _transactionBodyRepository;
         private readonly ITransactionMetaRepository<TTransactionMeta> _transactionMetaRepository;
         private readonly ITransactionObservationRepository<TTransactionObservation> _transactionObservationRepository;
+        private readonly IBlockchainService _blockchainService;
 
-        public TransactionService(ITransactionBodyRepository<TTransactionBody> transactionBodyRepository, ITransactionMetaRepository<TTransactionMeta> transactionMetaRepository, ITransactionObservationRepository<TTransactionObservation> transactionObservationRepository)
+        public TransactionService(ITransactionBodyRepository<TTransactionBody> transactionBodyRepository, ITransactionMetaRepository<TTransactionMeta> transactionMetaRepository, ITransactionObservationRepository<TTransactionObservation> transactionObservationRepository, IBlockchainService blockchainService)
         {
             _transactionBodyRepository = transactionBodyRepository;
             _transactionMetaRepository = transactionMetaRepository;
             _transactionObservationRepository = transactionObservationRepository;
+            _blockchainService = blockchainService;
         }
 
         /// <summary>
@@ -63,6 +65,95 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<(string continuation, IEnumerable<TTransactionObservation> items)> GetTransactionObservationAsync(int pageSize, string continuation)
         {
             return await _transactionObservationRepository.GetAsync(pageSize, continuation);
+        }
+
+        /// <summary>
+        /// Get new or exist unsigned transaction
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <param name="fromAddress">Address from</param>
+        /// <param name="toAddress">Address to</param>
+        /// <param name="amount">Amount</param>
+        /// <param name="assetId">Asset Id</param>
+        /// <param name="includeFee">Include fee</param>
+        /// <returns>Unsigned transaction context</returns>
+        public async Task<string> GetUnsignSendTransactionAsync(Guid operationId, string fromAddress, string toAddress, string amount, string assetId = "XBR", bool includeFee = false)
+        {
+            TTransactionBody transactionBody = await GetTransactionBodyByIdAsync(operationId);
+
+            if(transactionBody == null)
+            {
+                TTransactionMeta transactionMeta = new TTransactionMeta
+                {
+                    OperationId = operationId,
+                    FromAddress = fromAddress,
+                    ToAddress = toAddress,
+                    AssetId = assetId,
+                    Amount = amount,
+                    IncludeFee = includeFee,
+                    State = TransactionState.NotSigned,
+                    CreateTimestamp = DateTime.Now
+                };
+
+                await SaveTransactionMetaAsync(transactionMeta);
+                
+                var unsignTransaction = await _blockchainService.CreateUnsignSendTransactionAsync(transactionMeta.FromAddress, transactionMeta.ToAddress, transactionMeta.Amount);
+                
+                transactionBody = new TTransactionBody
+                {
+                    OperationId = operationId,
+                    UnsignedTransaction = unsignTransaction
+                };
+
+                await SaveTransactionBodyAsync(transactionBody);
+            }
+
+            return transactionBody.UnsignedTransaction;
+        }
+
+        /// <summary>
+        /// Publish signed transaction to network
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <param name="signedTransaction">Signed transaction</param>
+        /// <returns>true if publish, false if already publish</returns>
+        public async Task<bool> BroadcastSignedTransactionAsync(Guid operationId, string signedTransaction)
+        {
+            TTransactionBody transactionBody = await GetTransactionBodyByIdAsync(operationId);
+            if (transactionBody == null)
+            {
+                transactionBody = new TTransactionBody
+                {
+                    OperationId = operationId
+                };
+            }
+
+            transactionBody.SignedTransaction = signedTransaction;
+
+            await UpdateTransactionBodyAsync(transactionBody);
+
+            var txMeta = await GetTransactionMetaAsync(operationId.ToString());
+
+            if (txMeta.State == TransactionState.Broadcasted 
+                || txMeta.State == TransactionState.Confirmed 
+                || txMeta.State == TransactionState.Failed
+                || txMeta.State == TransactionState.BlockChainFailed)
+            {
+                return false;
+            }
+
+            txMeta.State = TransactionState.Signed;
+            txMeta.BroadcastTimestamp = DateTime.Now;
+            await UpdateTransactionMeta(txMeta);
+
+            TTransactionObservation transactionObservation = new TTransactionObservation
+            {
+                OperationId = operationId
+            };
+
+            await CreateObservationAsync(transactionObservation);
+
+            return true;
         }
 
         /// <summary>

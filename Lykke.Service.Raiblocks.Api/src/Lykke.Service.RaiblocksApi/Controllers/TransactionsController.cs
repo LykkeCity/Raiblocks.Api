@@ -39,47 +39,22 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> BuildNotSignedSingleTransactionAsync([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
         {
-            TransactionBody transactionBody = await _transactionService.GetTransactionBodyByIdAsync(buildTransactionRequest.OperationId);
-
             TransactionExecutionError? error = null;
-
-            if(transactionBody == null)
+            var balance = await _blockchainService.GetAddressBalanceAsync(buildTransactionRequest.FromAddress);
+            if (BigInteger.Parse(balance) < BigInteger.Parse(buildTransactionRequest.Amount))
             {
-                TransactionMeta transactionMeta = new TransactionMeta
-                {
-                    OperationId = buildTransactionRequest.OperationId,
-                    FromAddress = buildTransactionRequest.FromAddress,
-                    ToAddress = buildTransactionRequest.ToAddress,
-                    AssetId = buildTransactionRequest.AssetId,
-                    Amount = buildTransactionRequest.Amount,
-                    IncludeFee = buildTransactionRequest.IncludeFee,
-                    State = TransactionState.NotSigned,
-                    CreateTimestamp = DateTime.Now
-                };
-
-                var balance = await _blockchainService.GetAddressBalanceAsync(transactionMeta.FromAddress);
-                if (BigInteger.Parse(balance) < BigInteger.Parse(transactionMeta.Amount))
-                {
-                    error = TransactionExecutionError.NotEnoughtBalance;
-                }
-
-                var unsignTransaction = await _blockchainService.CreateUnsignSendTransactionAsync(transactionMeta.FromAddress, transactionMeta.ToAddress, transactionMeta.Amount);
-
-                await _transactionService.SaveTransactionMetaAsync(transactionMeta);
-
-                transactionBody = new TransactionBody
-                {
-                    OperationId = buildTransactionRequest.OperationId,
-                    UnsignedTransaction = unsignTransaction
-                };
-
-                await _transactionService.SaveTransactionBodyAsync(transactionBody);
+                error = TransactionExecutionError.NotEnoughtBalance;
             }
-       
+
+            var unsignTransaction = await _transactionService.GetUnsignSendTransactionAsync(
+                buildTransactionRequest.OperationId, buildTransactionRequest.FromAddress,
+                buildTransactionRequest.ToAddress, buildTransactionRequest.Amount, buildTransactionRequest.AssetId,
+                buildTransactionRequest.IncludeFee);
+            
             return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
             {
                 ErrorCode = error,
-                TransactionContext = transactionBody.UnsignedTransaction
+                TransactionContext = unsignTransaction
             });
         }
 
@@ -94,42 +69,15 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(BroadcastTransactionResponse), (int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> BroadcastSignedTransactionAsync([FromBody] BroadcastTransactionRequest broadcastTransactionRequest)
         {
-            TransactionBody transactionBody = await _transactionService.GetTransactionBodyByIdAsync(broadcastTransactionRequest.OperationId);
-            if (transactionBody == null)
-            {
-                transactionBody = new TransactionBody
-                {
-                    OperationId = broadcastTransactionRequest.OperationId
-                };
-            }
+            var result = await _transactionService.BroadcastSignedTransactionAsync(
+                broadcastTransactionRequest.OperationId, broadcastTransactionRequest.SignedTransaction);
 
-            transactionBody.SignedTransaction = broadcastTransactionRequest.SignedTransaction;
-
-            await _transactionService.UpdateTransactionBodyAsync(transactionBody);
-
-            var txMeta = await _transactionService.GetTransactionMetaAsync(broadcastTransactionRequest.OperationId.ToString());
-
-            if (txMeta.State == TransactionState.Broadcasted 
-                || txMeta.State == TransactionState.Confirmed 
-                || txMeta.State == TransactionState.Failed
-                || txMeta.State == TransactionState.BlockChainFailed)
+            if (result)
             {
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transaction with specified operationId and signedTransaction has already been broadcasted"));
             }
 
-            txMeta.State = TransactionState.Signed;
-            txMeta.BroadcastTimestamp = DateTime.Now;
-            await _transactionService.UpdateTransactionMeta(txMeta);
-
-            TransactionObservation transactionObservation = new TransactionObservation
-            {
-                OperationId = broadcastTransactionRequest.OperationId
-            };
-
-            await _transactionService.CreateObservationAsync(transactionObservation);
-
             return Ok(new BroadcastTransactionResponse());
-
         }
 
         /// <summary>
