@@ -65,19 +65,19 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                         {
                             var history = await _blockchainService.GetAddressHistoryAsync(addressObservation.Address, addressBlockCount - latestBlockNum);
 
-                            var addressHistoryEntries = history.Reverse().Select((x, index) => new AddressHistoryEntry
+                            var addressHistoryEntries = history.Select((x, index) => new AddressHistoryEntry
                             {
                                 FromAddress = x.from,
                                 ToAddress = x.to,
                                 Amount = x.amount.ToString(),
                                 Hash = x.hash,
                                 Type = x.from == addressObservation.Address ? AddressObservationType.From : AddressObservationType.To,
-                                BlockCount = index + latestBlockNum + 1
+                                BlockCount = addressBlockCount - index
                             });
 
                             foreach (var addressHistoryEntry in addressHistoryEntries)
                             {
-                                var result = _historyService.InsertAddressHistoryAsync(addressHistoryEntry);
+                                await _historyService.InsertAddressHistoryAsync(addressHistoryEntry);
                             }
 
                         }

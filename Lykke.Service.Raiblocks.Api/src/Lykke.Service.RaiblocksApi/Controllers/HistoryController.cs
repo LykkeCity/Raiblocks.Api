@@ -95,7 +95,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 //Timestamp = null
             }).Select(x =>
             {
-                var operationHistory = internalHistory.Where(y => y.Hash == x.Hash).FirstOrDefault();
+                var operationHistory = internalHistory.FirstOrDefault(y => y.Hash == x.Hash);
 
                 if (operationHistory != null)
                 {
