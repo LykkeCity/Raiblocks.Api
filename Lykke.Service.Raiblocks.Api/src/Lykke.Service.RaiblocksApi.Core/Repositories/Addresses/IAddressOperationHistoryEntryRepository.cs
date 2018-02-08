@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
 {
-    public interface IAddressOperationHistoryEntryRepository<OperationHistoryEntry> : IRepository<OperationHistoryEntry>
-        where OperationHistoryEntry: IAddressOperationHistoryEntry
+    public interface IAddressOperationHistoryEntryRepository<TOperationHistoryEntry> : IRepository<TOperationHistoryEntry>
+        where TOperationHistoryEntry: IAddressOperationHistoryEntry
     {
-        Task<IEnumerable<OperationHistoryEntry>> GetByAddressAsync(int take, string partitionKey, string address);
+        Task<IEnumerable<TOperationHistoryEntry>> GetByAddressAsync(int take, string partitionKey, string address);
     }
 }

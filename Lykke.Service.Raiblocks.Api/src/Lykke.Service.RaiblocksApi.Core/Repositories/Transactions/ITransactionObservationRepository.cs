@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Transactions
 {
-    public interface ITransactionObservationRepository<TransactionObservation> : IRepository<TransactionObservation>
-        where TransactionObservation : ITransactionObservation
+    public interface ITransactionObservationRepository<TTransactionObservation> : IRepository<TTransactionObservation>
+        where TTransactionObservation : ITransactionObservation
     {
     }
 }

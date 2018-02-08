@@ -8,39 +8,39 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
-    public class HistoryService<AddressHistory, AddressObservation, AddressOperation> : IHistoryService<AddressHistory, AddressObservation, AddressOperation>
-        where AddressHistory : IAddressHistoryEntry
-        where AddressObservation : IAddressObservation
-        where AddressOperation : IAddressOperationHistoryEntry
+    public class HistoryService<TAddressHistory, TAddressObservation, TAddressOperation> : IHistoryService<TAddressHistory, TAddressObservation, TAddressOperation>
+        where TAddressHistory : IAddressHistoryEntry
+        where TAddressObservation : IAddressObservation
+        where TAddressOperation : IAddressOperationHistoryEntry
     {
-        private readonly IAddressHistoryEntryRepository<AddressHistory> _addressHistoryEntryRepository;
-        private readonly IAddressObservationRepository<AddressObservation> _addressObservationRepository;
-        private readonly IAddressOperationHistoryEntryRepository<AddressOperation> _addressOperationHistoryEntryRepository;
+        private readonly IAddressHistoryEntryRepository<TAddressHistory> _addressHistoryEntryRepository;
+        private readonly IAddressObservationRepository<TAddressObservation> _addressObservationRepository;
+        private readonly IAddressOperationHistoryEntryRepository<TAddressOperation> _addressOperationHistoryEntryRepository;
 
-        public HistoryService(IAddressHistoryEntryRepository<AddressHistory> addressHistoryEntryRepository, IAddressObservationRepository<AddressObservation> addressObservationRepository, IAddressOperationHistoryEntryRepository<AddressOperation> addressOperationHistoryEntryRepository)
+        public HistoryService(IAddressHistoryEntryRepository<TAddressHistory> addressHistoryEntryRepository, IAddressObservationRepository<TAddressObservation> addressObservationRepository, IAddressOperationHistoryEntryRepository<TAddressOperation> addressOperationHistoryEntryRepository)
         {
             _addressHistoryEntryRepository = addressHistoryEntryRepository;
             _addressObservationRepository = addressObservationRepository;
             _addressOperationHistoryEntryRepository = addressOperationHistoryEntryRepository;
         }
 
-        public async Task<bool> AddAddressObservationAsync(AddressObservation addressObservation)
+        public async Task<bool> AddAddressObservationAsync(TAddressObservation addressObservation)
         {
             return await _addressObservationRepository.CreateIfNotExistsAsync(addressObservation);
         }
 
-        public async Task<bool> InsertAddressHistoryAsync(AddressHistory addressHistoryEntry)
+        public async Task<bool> InsertAddressHistoryAsync(TAddressHistory addressHistoryEntry)
         {
             return await _addressHistoryEntryRepository.CreateIfNotExistsAsync(addressHistoryEntry);
         }
 
-        public async Task<(string continuation, IEnumerable<AddressHistory> items)> GetAddressHistoryAsync(int take, string continuation, string partitionKey = null)
+        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take, string continuation, string partitionKey = null)
         {
             return await _addressHistoryEntryRepository.GetAsync(take, continuation, partitionKey);
 
         }
 
-        public async Task<IEnumerable<AddressHistory>> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash)
+        public async Task<IEnumerable<TAddressHistory>> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash)
         {
             if (address != null && partitionKey != null)
             {
@@ -63,27 +63,27 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         }
 
-        public async Task<(string continuation, IEnumerable<AddressObservation> items)> GetAddressObservationAsync(int take, string continuation, string partitionKey = null)
+        public async Task<(string continuation, IEnumerable<TAddressObservation> items)> GetAddressObservationAsync(int take, string continuation, string partitionKey = null)
         {
             return await _addressObservationRepository.GetAsync(take, continuation, partitionKey);
         }
 
-        public async Task<bool> IsAddressObservedAsync(AddressObservation addressObservation)
+        public async Task<bool> IsAddressObservedAsync(TAddressObservation addressObservation)
         {
             return await _addressObservationRepository.IsExistAsync(addressObservation);
         }
 
-        public async Task<bool> RemoveAddressObservationAsync(AddressObservation addressObservation)
+        public async Task<bool> RemoveAddressObservationAsync(TAddressObservation addressObservation)
         {
             return await _addressObservationRepository.DeleteIfExistAsync(addressObservation);
         }
 
-        public async Task<IEnumerable<AddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey, string address)
+        public async Task<IEnumerable<TAddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey, string address)
         {
             return await _addressOperationHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address);
         }
 
-        public async Task<bool> AddAddressOperationHistoryAsync(AddressOperation operationHistoryEntry)
+        public async Task<bool> AddAddressOperationHistoryAsync(TAddressOperation operationHistoryEntry)
         {
             return await _addressOperationHistoryEntryRepository.CreateIfNotExistsAsync(operationHistoryEntry);
         }

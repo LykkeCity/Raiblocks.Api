@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
 {
-    public interface IAddressHistoryEntryRepository<HistoryEntry> : IRepository<HistoryEntry>
-        where HistoryEntry : IAddressHistoryEntry
+    public interface IAddressHistoryEntryRepository<THistoryEntry> : IRepository<THistoryEntry>
+        where THistoryEntry : IAddressHistoryEntry
     {
         /// <summary>
         /// Return history entries for address after specific hash
@@ -17,6 +17,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
         /// <param name="address">Address</param>
         /// <param name="afterBlockCount">Block hash</param>
         /// <returns>History entries for address after specific hash</returns>
-        Task<IEnumerable<HistoryEntry>> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0);
+        Task<IEnumerable<THistoryEntry>> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0);
     }
 }

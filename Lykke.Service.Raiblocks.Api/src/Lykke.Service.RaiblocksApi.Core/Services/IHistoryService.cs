@@ -6,28 +6,28 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Services
 {
-    public interface IHistoryService<AddressHistory, AddressObservation, AddressOperation>
+    public interface IHistoryService<TAddressHistory, TAddressObservation, TAddressOperation>
     {
         /// <summary>
         /// Check is address history already observed
         /// </summary>
         /// <param name="addressObservation"></param>
         /// <returns></returns>
-        Task<bool> IsAddressObservedAsync(AddressObservation addressObservation);
+        Task<bool> IsAddressObservedAsync(TAddressObservation addressObservation);
 
         /// <summary>
         /// Observe address history
         /// </summary>
         /// <param name="addressObservation"></param>
         /// <returns></returns>
-        Task<bool> AddAddressObservationAsync(AddressObservation addressObservation);
+        Task<bool> AddAddressObservationAsync(TAddressObservation addressObservation);
 
         /// <summary>
         /// Stop observe address history
         /// </summary>
         /// <param name="addressObservation"></param>
         /// <returns></returns>
-        Task<bool> RemoveAddressObservationAsync(AddressObservation addressObservation);
+        Task<bool> RemoveAddressObservationAsync(TAddressObservation addressObservation);
 
         /// <summary>
         /// Get observed addresses
@@ -36,7 +36,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="continuation"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        Task<(string continuation, IEnumerable<AddressObservation> items)> GetAddressObservationAsync(int pageSize, string continuation = null, string partitionKey = null);
+        Task<(string continuation, IEnumerable<TAddressObservation> items)> GetAddressObservationAsync(int pageSize, string continuation = null, string partitionKey = null);
 
         /// <summary>
         /// Get stored address history after specific hash
@@ -46,7 +46,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="address"></param>
         /// <param name="afterHash"></param>
         /// <returns></returns>
-        Task<IEnumerable<AddressHistory>> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash);
+        Task<IEnumerable<TAddressHistory>> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash);
        
         /// <summary>
         /// Get stored address history
@@ -55,14 +55,14 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="continuation"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        Task<(string continuation, IEnumerable<AddressHistory> items)> GetAddressHistoryAsync(int take, string continuation, string partitionKey = null);
+        Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take, string continuation, string partitionKey = null);
 
         /// <summary>
         /// Save address history entry
         /// </summary>
         /// <param name="addressHistoryEntry"></param>
         /// <returns></returns>
-        Task<bool> InsertAddressHistoryAsync(AddressHistory addressHistoryEntry);
+        Task<bool> InsertAddressHistoryAsync(TAddressHistory addressHistoryEntry);
 
         /// <summary>
         /// Get operation history
@@ -71,13 +71,13 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="partitionKey"></param>
         /// <param name="address"></param>
         /// <returns></returns>
-        Task<IEnumerable<AddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey, string address);
+        Task<IEnumerable<TAddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey, string address);
 
         /// <summary>
         /// Save operation history entry
         /// </summary>
         /// <param name="operationHistoryEntry"></param>
         /// <returns></returns>
-        Task<bool> AddAddressOperationHistoryAsync(AddressOperation operationHistoryEntry);
+        Task<bool> AddAddressOperationHistoryAsync(TAddressOperation operationHistoryEntry);
     }
 }

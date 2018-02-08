@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
 {
-    public interface IAddressObservationRepository<AddressObservation> : IRepository<AddressObservation>
-        where AddressObservation : IAddressObservation
+    public interface IAddressObservationRepository<TAddressObservation> : IRepository<TAddressObservation>
+        where TAddressObservation : IAddressObservation
     {
 
     }
