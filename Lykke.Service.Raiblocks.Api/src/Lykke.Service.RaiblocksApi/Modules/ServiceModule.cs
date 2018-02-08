@@ -103,9 +103,12 @@ namespace Lykke.Service.RaiblocksApi.Modules
             builder.RegisterType<TransactionService<TransactionBody, TransactionMeta, TransactionObservation>>()
                 .As<ITransactionService<TransactionBody, TransactionMeta, TransactionObservation>>();
 
+            const int curerntAccuracy = 6;
+            const int maxAccuracy = 30;
+            
             builder.RegisterType<AssetService>()
                 .As<IAssetService>()
-                .WithParameter("accuracy", _settings.Nested(s => s.CurerntAccuracy).CurrentValue);
+                .WithParameter("accuracy", curerntAccuracy);
 
             builder.RegisterType<RaiBlocksRpc>()
                 .As<RaiBlocksRpc>()
@@ -117,8 +120,8 @@ namespace Lykke.Service.RaiblocksApi.Modules
             // CoinConverter            
             builder.RegisterType<CoinConverter>()
                 .As<CoinConverter>()
-                .WithParameter("accuracy", _settings.Nested(s => s.CurerntAccuracy).CurrentValue)
-                .WithParameter("maxAccuracy", _settings.Nested(s => s.MaxAccuracy).CurrentValue);
+                .WithParameter("accuracy", curerntAccuracy)
+                .WithParameter("maxAccuracy", maxAccuracy);
             
             // TODO: Add your dependencies here
 
