@@ -62,7 +62,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                                 await _balanceService.UpdateBalance(addressBalance);
                             } else
                             {
-                                await _balanceService.RemoveBalancenAsync(addressBalance);
+                                await _balanceService.RemoveBalanceAsync(addressBalance);
                             }
                             
                         }

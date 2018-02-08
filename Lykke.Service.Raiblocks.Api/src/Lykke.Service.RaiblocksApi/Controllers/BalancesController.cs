@@ -66,7 +66,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             };
             if (await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.RemoveBalanceObservationAsync(balanceObservation))
             {
-                await _balanceService.RemoveBalancenAsync(new AddressBalance
+                await _balanceService.RemoveBalanceAsync(new AddressBalance
                 {
                     Address = address
                 });

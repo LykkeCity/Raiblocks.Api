@@ -36,7 +36,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task<bool> RemoveBalancenAsync(TBalance item);
+        Task<bool> RemoveBalanceAsync(TBalance item);
 
         /// <summary>
         /// Check is address balance already observed

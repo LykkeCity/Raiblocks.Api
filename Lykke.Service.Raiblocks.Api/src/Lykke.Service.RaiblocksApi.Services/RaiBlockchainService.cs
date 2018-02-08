@@ -118,7 +118,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await policyResult;
         }
 
-        public async Task<(string, string)> BroadcastSignedTransactionAsync(string signedTransaction)
+        public async Task<(string hash, string error)> BroadcastSignedTransactionAsync(string signedTransaction)
         {
             var policyResult = Policy
                 .Handle<HttpRequestException>()
