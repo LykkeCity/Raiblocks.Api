@@ -29,17 +29,17 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await _transactionObservationRepository.CreateIfNotExistsAsync(transactionObservation);
         }
 
-        public async Task<TransactionBody> GetTransactionBodyById(Guid operationId)
+        public async Task<TransactionBody> GetTransactionBodyByIdAsync(Guid operationId)
         {
             return await _transactionBodyRepository.GetAsync(operationId.ToString());
         }
 
-        public async Task<TransactionMeta> GetTransactionMeta(string id)
+        public async Task<TransactionMeta> GetTransactionMetaAsync(string id)
         {
             return await _transactionMetaRepository.GetAsync(id);
         }
 
-        public async Task<(string continuation, IEnumerable<TransactionObservation> items)> GetTransactionObservation(int pageSize, string continuation)
+        public async Task<(string continuation, IEnumerable<TransactionObservation> items)> GetTransactionObservationAsync(int pageSize, string continuation)
         {
             return await _transactionObservationRepository.GetAsync(pageSize, continuation);
         }
@@ -54,12 +54,12 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await _transactionObservationRepository.DeleteIfExistAsync(transactionObservation);
         }
 
-        public async Task<bool> SaveTransactionBody(TransactionBody transactionBody)
+        public async Task<bool> SaveTransactionBodyAsync(TransactionBody transactionBody)
         {
             return await _transactionBodyRepository.CreateIfNotExistsAsync(transactionBody);
         }
 
-        public async Task<bool> SaveTransactionMeta(TransactionMeta transactionMeta)
+        public async Task<bool> SaveTransactionMetaAsync(TransactionMeta transactionMeta)
         {
             return await _transactionMetaRepository.CreateIfNotExistsAsync(transactionMeta);
         }

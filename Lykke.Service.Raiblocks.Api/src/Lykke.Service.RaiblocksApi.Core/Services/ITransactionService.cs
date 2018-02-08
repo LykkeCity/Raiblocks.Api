@@ -16,28 +16,28 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<TransactionMeta> GetTransactionMeta(string id);
+        Task<TransactionMeta> GetTransactionMetaAsync(string id);
 
         /// <summary>
         /// Save transaction meta
         /// </summary>
         /// <param name="transactionMeta"></param>
         /// <returns></returns>
-        Task<bool> SaveTransactionMeta(TransactionMeta transactionMeta);
+        Task<bool> SaveTransactionMetaAsync(TransactionMeta transactionMeta);
 
         /// <summary>
         /// Save transaction body
         /// </summary>
         /// <param name="transactionBody"></param>
         /// <returns></returns>
-        Task<bool> SaveTransactionBody(TransactionBody transactionBody);
+        Task<bool> SaveTransactionBodyAsync(TransactionBody transactionBody);
 
         /// <summary>
         /// Get transaction body by operation id
         /// </summary>
         /// <param name="operationId"></param>
         /// <returns></returns>
-        Task<TransactionBody> GetTransactionBodyById(Guid operationId);
+        Task<TransactionBody> GetTransactionBodyByIdAsync(Guid operationId);
 
         /// <summary>
         /// Update transaction body
@@ -80,6 +80,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="pageSize"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        Task<(string continuation, IEnumerable<TransactionObservation> items)> GetTransactionObservation(int pageSize, string continuation);
+        Task<(string continuation, IEnumerable<TransactionObservation> items)> GetTransactionObservationAsync(int pageSize, string continuation);
     }
 }

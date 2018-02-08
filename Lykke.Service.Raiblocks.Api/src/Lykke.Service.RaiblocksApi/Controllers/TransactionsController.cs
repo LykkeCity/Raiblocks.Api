@@ -37,9 +37,9 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpPost("single")]
         [SwaggerOperation("BuildNotSignedTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> BuildNotSignedSingleTransaction([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
+        public async Task<IActionResult> BuildNotSignedSingleTransactionAsync([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
         {
-            TransactionBody transactionBody = await _transactionService.GetTransactionBodyById(buildTransactionRequest.OperationId);
+            TransactionBody transactionBody = await _transactionService.GetTransactionBodyByIdAsync(buildTransactionRequest.OperationId);
 
             TransactionExecutionError? error = null;
 
@@ -63,9 +63,9 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                     error = TransactionExecutionError.NotEnoughtBalance;
                 }
 
-                var unsignTransaction = await _blockchainService.CreateUnsignSendTransaction(transactionMeta.FromAddress, transactionMeta.ToAddress, transactionMeta.Amount);
+                var unsignTransaction = await _blockchainService.CreateUnsignSendTransactionAsync(transactionMeta.FromAddress, transactionMeta.ToAddress, transactionMeta.Amount);
 
-                await _transactionService.SaveTransactionMeta(transactionMeta);
+                await _transactionService.SaveTransactionMetaAsync(transactionMeta);
 
                 transactionBody = new TransactionBody
                 {
@@ -73,7 +73,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                     UnsignedTransaction = unsignTransaction
                 };
 
-                await _transactionService.SaveTransactionBody(transactionBody);
+                await _transactionService.SaveTransactionBodyAsync(transactionBody);
             }
        
             return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
@@ -94,7 +94,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(BroadcastTransactionResponse), (int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> BroadcastSignedTransactionAsync([FromBody] BroadcastTransactionRequest broadcastTransactionRequest)
         {
-            TransactionBody transactionBody = await _transactionService.GetTransactionBodyById(broadcastTransactionRequest.OperationId);
+            TransactionBody transactionBody = await _transactionService.GetTransactionBodyByIdAsync(broadcastTransactionRequest.OperationId);
             if (transactionBody == null)
             {
                 transactionBody = new TransactionBody
@@ -107,7 +107,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
             await _transactionService.UpdateTransactionBodyAsync(transactionBody);
 
-            var txMeta = await _transactionService.GetTransactionMeta(broadcastTransactionRequest.OperationId.ToString());
+            var txMeta = await _transactionService.GetTransactionMetaAsync(broadcastTransactionRequest.OperationId.ToString());
 
             if (txMeta.State == TransactionState.Broadcasted 
                 || txMeta.State == TransactionState.Confirmed 
@@ -141,9 +141,9 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("GetBroadcastedSingleTransaction")]
         [ProducesResponseType(typeof(BroadcastedSingleTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> GetBroadcastedSingleTransaction(string operationId)
+        public async Task<IActionResult> GetBroadcastedSingleTransactionAsync(string operationId)
         {
-            var txMeta = await _transactionService.GetTransactionMeta(operationId);
+            var txMeta = await _transactionService.GetTransactionMetaAsync(operationId);
             if (txMeta != null)
             {
                 BroadcastedTransactionState state;

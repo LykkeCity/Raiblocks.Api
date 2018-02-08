@@ -34,14 +34,14 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("AddHistoryObservationFrom")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> AddHistoryObservationFrom(string address)
+        public async Task<IActionResult> AddHistoryObservationFromAsync(string address)
         {
             AddressObservation addressObservation = new AddressObservation
             {
                 Address = address,
                 Type = AddressObservationType.From
             };
-            if (!await _historyService.IsAddressObserved(addressObservation) && await _historyService.AddAddressObservation(addressObservation))
+            if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
                 return Ok();
             else
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions from the address are already observed"));
@@ -56,14 +56,14 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("AddHistoryObservationFrom")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> AddHistoryObservationTo(string address)
+        public async Task<IActionResult> AddHistoryObservationToAsync(string address)
         {
             AddressObservation addressObservation = new AddressObservation
             {
                 Address = address,
                 Type = AddressObservationType.To
             };
-            if (!await _historyService.IsAddressObserved(addressObservation) && await _historyService.AddAddressObservation(addressObservation))
+            if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
                 return Ok();
             else
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions to the address are already observed"));
@@ -159,7 +159,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 Address = address,
                 Type = AddressObservationType.From
             };
-            if (await _historyService.IsAddressObserved(addressObservation) && await _historyService.RemoveAddressObservation(addressObservation))
+            if (await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.RemoveAddressObservationAsync(addressObservation))
                 return Ok();
             else
                 return StatusCode((int)HttpStatusCode.NoContent);
@@ -181,7 +181,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 Address = address,
                 Type = AddressObservationType.To
             };
-            if (await _historyService.IsAddressObserved(addressObservation) && await _historyService.RemoveAddressObservation(addressObservation))
+            if (await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.RemoveAddressObservationAsync(addressObservation))
                 return Ok();
             else
                 return StatusCode((int)HttpStatusCode.NoContent);

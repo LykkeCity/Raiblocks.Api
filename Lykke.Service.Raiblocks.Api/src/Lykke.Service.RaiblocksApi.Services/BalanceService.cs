@@ -21,27 +21,27 @@ namespace Lykke.Service.RaiblocksApi.Services
             _addressBalanceRepository = addressBalanceRepository;
         }
 
-        public async Task<bool> AddBalanceObservation(BalanceObservation item)
+        public async Task<bool> AddBalanceObservationAsync(BalanceObservation item)
         {
             return await _balanceObservationRepository.CreateIfNotExistsAsync(item);
         }
 
-        public async Task<bool> RemoveBalanceObservation(BalanceObservation item)
+        public async Task<bool> RemoveBalanceObservationAsync(BalanceObservation item)
         {
             return await _balanceObservationRepository.DeleteIfExistAsync(item);
         }
 
-        public async Task<bool> IsBalanceObserved(BalanceObservation item)
+        public async Task<bool> IsBalanceObservedAsync(BalanceObservation item)
         {
             return await _balanceObservationRepository.IsExistAsync(item);
         }
 
-        public async Task<(string continuation, IEnumerable<Balance> items)> GetBalances(int take = 100, string continuation = null)
+        public async Task<(string continuation, IEnumerable<Balance> items)> GetBalancesAsync(int take = 100, string continuation = null)
         {
             return await _addressBalanceRepository.GetAsync(take, continuation);
         }
 
-        public async Task<(string continuation, IEnumerable<BalanceObservation> items)> GetBalancesObservation(int take = 100, string continuation = null)
+        public async Task<(string continuation, IEnumerable<BalanceObservation> items)> GetBalancesObservationAsync(int take = 100, string continuation = null)
         {
             return await _balanceObservationRepository.GetAsync(take, continuation);
         }
@@ -56,7 +56,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             return _addressBalanceRepository.UpdateAsync(item);
         }
 
-        public async Task<bool> IsBalanceExist(Balance item)
+        public async Task<bool> IsBalanceExistAsync(Balance item)
         {
             return await _addressBalanceRepository.IsExistAsync(item);
         }

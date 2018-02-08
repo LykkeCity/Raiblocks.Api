@@ -24,12 +24,12 @@ namespace Lykke.Service.RaiblocksApi.Services
             _addressOperationHistoryEntryRepository = addressOperationHistoryEntryRepository;
         }
 
-        public async Task<bool> AddAddressObservation(AddressObservation addressObservation)
+        public async Task<bool> AddAddressObservationAsync(AddressObservation addressObservation)
         {
             return await _addressObservationRepository.CreateIfNotExistsAsync(addressObservation);
         }
 
-        public async Task<bool> InsertAddressHistory(AddressHistory addressHistoryEntry)
+        public async Task<bool> InsertAddressHistoryAsync(AddressHistory addressHistoryEntry)
         {
             return await _addressHistoryEntryRepository.CreateIfNotExistsAsync(addressHistoryEntry);
         }
@@ -68,12 +68,12 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await _addressObservationRepository.GetAsync(take, continuation, partitionKey);
         }
 
-        public async Task<bool> IsAddressObserved(AddressObservation addressObservation)
+        public async Task<bool> IsAddressObservedAsync(AddressObservation addressObservation)
         {
             return await _addressObservationRepository.IsExistAsync(addressObservation);
         }
 
-        public async Task<bool> RemoveAddressObservation(AddressObservation addressObservation)
+        public async Task<bool> RemoveAddressObservationAsync(AddressObservation addressObservation)
         {
             return await _addressObservationRepository.DeleteIfExistAsync(addressObservation);
         }

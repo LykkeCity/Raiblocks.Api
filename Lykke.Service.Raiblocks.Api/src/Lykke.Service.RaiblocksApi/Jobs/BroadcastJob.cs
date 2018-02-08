@@ -33,7 +33,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         /// </summary>
         /// <returns></returns>
         [TimerTrigger("00:00:10")]
-        public async Task BroadcastTransactions()
+        public async Task BroadcastTransactionsAsync()
         {
             await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "Broadcast start", DateTime.Now);
 
@@ -42,15 +42,15 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
             do
             {
-                transactionObservations = await _transactionService.GetTransactionObservation(pageSize, continuation);
+                transactionObservations = await _transactionService.GetTransactionObservationAsync(pageSize, continuation);
 
                 foreach (var transactionObservation in transactionObservations.items)
                 {
-                    var txMeta = await _transactionService.GetTransactionMeta(transactionObservation.OperationId.ToString());
+                    var txMeta = await _transactionService.GetTransactionMetaAsync(transactionObservation.OperationId.ToString());
 
                     if (txMeta.State == TransactionState.Signed)
                     {
-                        var txBody = await _transactionService.GetTransactionBodyById(transactionObservation.OperationId);
+                        var txBody = await _transactionService.GetTransactionBodyByIdAsync(transactionObservation.OperationId);
                         var broadcactResult = await _blockchainService.BroadcastSignedTransactionAsync(txBody.SignedTransaction);
 
                         if (broadcactResult.error != null) {

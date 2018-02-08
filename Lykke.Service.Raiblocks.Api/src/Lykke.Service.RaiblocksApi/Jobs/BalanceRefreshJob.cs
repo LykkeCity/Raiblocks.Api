@@ -32,7 +32,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         /// </summary>
         /// <returns></returns>
         [TimerTrigger("00:00:10")]
-        public async Task RefreshBalances()
+        public async Task RefreshBalancesAsync()
         {
             await _log.WriteInfoAsync(nameof(BalanceRefreshJob), $"Env: {Program.EnvInfo}", "Refresh balances start", DateTime.Now);
             (string continuation, IEnumerable<BalanceObservation> items) balancesObservation;
@@ -40,13 +40,13 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
             do
             {
-                balancesObservation = await _balanceService.GetBalancesObservation(pageSize, continuation);
+                balancesObservation = await _balanceService.GetBalancesObservationAsync(pageSize, continuation);
 
                 if (balancesObservation.items.Any())
                 {
                     continuation = balancesObservation.continuation;
 
-                    foreach (KeyValuePair<string, string> balance in await _blockchainService.GetAddressBalances(balancesObservation.items.Select(x => x.Address)))
+                    foreach (KeyValuePair<string, string> balance in await _blockchainService.GetAddressBalancesAsync(balancesObservation.items.Select(x => x.Address)))
                     {
                         var addressBalance = new AddressBalance
                         {
@@ -55,7 +55,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                             Block = await _blockchainService.GetAddressBlockCountAsync(balance.Key)
                         };
 
-                        if (await _balanceService.IsBalanceExist(addressBalance))
+                        if (await _balanceService.IsBalanceExistAsync(addressBalance))
                         {
                             if (BigInteger.Parse(balance.Value) > 0)
                             {

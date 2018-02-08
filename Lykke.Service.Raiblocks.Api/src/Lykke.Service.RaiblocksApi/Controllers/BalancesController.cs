@@ -33,13 +33,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("AddBalanceObservation")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> AddBalanceObservation(string address)
+        public async Task<IActionResult> AddBalanceObservationAsync(string address)
         {
             BalanceObservation balanceObservation = new BalanceObservation
             {
                 Address = address,
             };
-            if (!await _balanceService.IsBalanceObserved(balanceObservation) && await _balanceService.AddBalanceObservation(balanceObservation))
+            if (!await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.AddBalanceObservationAsync(balanceObservation))
             {
                 return Ok();
             }
@@ -58,13 +58,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("RemoveBalanceObservation")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> RemoveBalanceObservation(string address)
+        public async Task<IActionResult> RemoveBalanceObservationAsync(string address)
         {
             BalanceObservation balanceObservation = new BalanceObservation
             {
                 Address = address
             };
-            if (await _balanceService.IsBalanceObserved(balanceObservation) && await _balanceService.RemoveBalanceObservation(balanceObservation))
+            if (await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.RemoveBalanceObservationAsync(balanceObservation))
             {
                 await _balanceService.RemoveBalancenAsync(new AddressBalance
                 {
@@ -87,9 +87,9 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet]
         [SwaggerOperation("GetBalances")]
         [ProducesResponseType(typeof(PaginationResponse<WalletBalanceContract>), (int)HttpStatusCode.OK)]
-        public async Task<PaginationResponse<WalletBalanceContract>> GetBalances([FromQuery]int take = 100, [FromQuery]string continuation = null)
+        public async Task<PaginationResponse<WalletBalanceContract>> GetBalancesAsync([FromQuery]int take = 100, [FromQuery]string continuation = null)
         {
-            var balances = await _balanceService.GetBalances(take, continuation);
+            var balances = await _balanceService.GetBalancesAsync(take, continuation);
             return PaginationResponse.From(
                 balances.continuation,
                 balances.items.Select(b => new WalletBalanceContract {

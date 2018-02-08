@@ -13,21 +13,21 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="addressObservation"></param>
         /// <returns></returns>
-        Task<bool> IsAddressObserved(AddressObservation addressObservation);
+        Task<bool> IsAddressObservedAsync(AddressObservation addressObservation);
 
         /// <summary>
         /// Observe address history
         /// </summary>
         /// <param name="addressObservation"></param>
         /// <returns></returns>
-        Task<bool> AddAddressObservation(AddressObservation addressObservation);
+        Task<bool> AddAddressObservationAsync(AddressObservation addressObservation);
 
         /// <summary>
         /// Stop observe address history
         /// </summary>
         /// <param name="addressObservation"></param>
         /// <returns></returns>
-        Task<bool> RemoveAddressObservation(AddressObservation addressObservation);
+        Task<bool> RemoveAddressObservationAsync(AddressObservation addressObservation);
 
         /// <summary>
         /// Get observed addresses
@@ -62,7 +62,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="addressHistoryEntry"></param>
         /// <returns></returns>
-        Task<bool> InsertAddressHistory(AddressHistory addressHistoryEntry);
+        Task<bool> InsertAddressHistoryAsync(AddressHistory addressHistoryEntry);
 
         /// <summary>
         /// Get operation history

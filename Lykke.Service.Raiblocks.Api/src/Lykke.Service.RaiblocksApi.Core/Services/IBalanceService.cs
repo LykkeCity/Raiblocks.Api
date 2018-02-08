@@ -15,7 +15,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task<bool> AddBalanceObservation(BalanceObservation item);
+        Task<bool> AddBalanceObservationAsync(BalanceObservation item);
 
         /// <summary>
         /// Save address balance
@@ -29,7 +29,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task<bool> RemoveBalanceObservation(BalanceObservation item);
+        Task<bool> RemoveBalanceObservationAsync(BalanceObservation item);
 
         /// <summary>
         /// Remove address balance
@@ -43,7 +43,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task<bool> IsBalanceObserved(BalanceObservation item);
+        Task<bool> IsBalanceObservedAsync(BalanceObservation item);
 
         /// <summary>
         /// Get balances
@@ -51,7 +51,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="take"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        Task<(string continuation, IEnumerable<Balance> items)> GetBalances(int take = 100, string continuation = null);
+        Task<(string continuation, IEnumerable<Balance> items)> GetBalancesAsync(int take = 100, string continuation = null);
 
         /// <summary>
         /// Get observed addresses
@@ -59,7 +59,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="take"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        Task<(string continuation, IEnumerable<BalanceObservation> items)> GetBalancesObservation(int take = 100, string continuation = null);
+        Task<(string continuation, IEnumerable<BalanceObservation> items)> GetBalancesObservationAsync(int take = 100, string continuation = null);
 
         /// <summary>
         /// Update address balance
@@ -73,6 +73,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task<bool> IsBalanceExist(Balance item);
+        Task<bool> IsBalanceExistAsync(Balance item);
     }
 }

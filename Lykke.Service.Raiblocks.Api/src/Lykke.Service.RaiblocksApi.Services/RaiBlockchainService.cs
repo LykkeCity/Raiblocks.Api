@@ -1,9 +1,4 @@
-﻿using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
-using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
-using Lykke.Service.RaiblocksApi.Core.Repositories;
-using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
-using Lykke.Service.RaiblocksApi.Core.Services;
-using Newtonsoft.Json;
+﻿using Lykke.Service.RaiblocksApi.Core.Services;
 using Newtonsoft.Json.Linq;
 using Polly;
 using RaiBlocks;
@@ -14,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Numerics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Services
@@ -31,7 +25,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             _raiBlocksRpc = raiBlocksRpc;
         }
 
-        public async Task<string> CreateUnsignSendTransaction(string address, string destination, string amount)
+        public async Task<string> CreateUnsignSendTransactionAsync(string address, string destination, string amount)
         {
             var policyResult = Policy
               .Handle<HttpRequestException>()
@@ -63,7 +57,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await policyResult;
         }
 
-        public async Task<Dictionary<string, string>> GetAddressBalances(IEnumerable<string> balanceObservation)
+        public async Task<Dictionary<string, string>> GetAddressBalancesAsync(IEnumerable<string> balanceObservation)
         {
             var policyResult = Policy
                 .Handle<HttpRequestException>()
@@ -98,7 +92,7 @@ namespace Lykke.Service.RaiblocksApi.Services
                     .Handle<HttpRequestException>()
                     .RetryAsync(retryCount)
                     .ExecuteAsync(async () => {
-                        var result = await _raiBlocksRpc.ValidateAccount(new RaiAddress(address));
+                        var result = await _raiBlocksRpc.ValidateAccountAsync(new RaiAddress(address));
                         return result.IsValid();
                     });
 

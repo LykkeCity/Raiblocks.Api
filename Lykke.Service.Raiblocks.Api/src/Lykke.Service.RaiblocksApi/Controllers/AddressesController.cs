@@ -32,7 +32,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet("{address}/validity")]
         [SwaggerOperation("AddressValidity")]
         [ProducesResponseType(typeof(AddressValidationResponse), (int)HttpStatusCode.OK)]
-        public async Task<AddressValidationResponse> AddressValidity(string address)
+        public async Task<AddressValidationResponse> AddressValidityAsync(string address)
         {
             return new AddressValidationResponse
             {

@@ -14,7 +14,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// </summary>
         /// <param name="addresses">Addresses</param>
         /// <returns>Balances for addresses</returns>
-        Task<Dictionary<string, string>> GetAddressBalances(IEnumerable<string> addresses);
+        Task<Dictionary<string, string>> GetAddressBalancesAsync(IEnumerable<string> addresses);
 
         /// <summary>
         /// Check validity for address
@@ -30,7 +30,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="destination">Address to</param>
         /// <param name="amount">Amount</param>
         /// <returns>Unsined transaction</returns>
-        Task<string> CreateUnsignSendTransaction(string address, string destination, string amount);
+        Task<string> CreateUnsignSendTransactionAsync(string address, string destination, string amount);
 
         /// <summary>
         /// Get balance for address

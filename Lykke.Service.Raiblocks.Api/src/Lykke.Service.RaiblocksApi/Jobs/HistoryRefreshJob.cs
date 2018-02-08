@@ -30,7 +30,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         /// </summary>
         /// <returns></returns>
         [TimerTrigger("00:00:10")]
-        public async Task RefreshHistory()
+        public async Task RefreshHistoryAsync()
         {
             await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "History balances start", DateTime.Now);
 
@@ -77,7 +77,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                             foreach (var addressHistoryEntry in addressHistoryEntries)
                             {
-                                var result = _historyService.InsertAddressHistory(addressHistoryEntry);
+                                var result = _historyService.InsertAddressHistoryAsync(addressHistoryEntry);
                             }
 
                         }
