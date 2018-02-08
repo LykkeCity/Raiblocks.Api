@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
 using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
+using Lykke.Service.RaiblocksApi.Core.Helpers;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -17,11 +18,14 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     {
         private readonly IBalanceService<BalanceObservation, AddressBalance> _balanceService;
         private readonly IAssetService _assetService;
+        private readonly CoinConverter _coinConverter;
 
-        public BalancesController(IBalanceService<BalanceObservation, AddressBalance> balanceService, IAssetService assetService)
+
+        public BalancesController(IBalanceService<BalanceObservation, AddressBalance> balanceService, IAssetService assetService, CoinConverter coinConverter)
         {
-            _balanceService  = balanceService;
+            _balanceService = balanceService;
             _assetService = assetService;
+            _coinConverter = coinConverter;
         }
 
         /// <summary>
@@ -94,7 +98,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 balances.continuation,
                 balances.items.Select(b => new WalletBalanceContract {
                     Address = b.Address,
-                    Balance = b.Balance, 
+                    Balance = _coinConverter.RawToLykkeRai(b.Balance), 
                     AssetId = _assetService.AssetId,
                     Block = b.Block
                 }).ToArray());

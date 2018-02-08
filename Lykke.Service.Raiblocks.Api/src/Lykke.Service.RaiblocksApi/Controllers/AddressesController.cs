@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Helpers;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {

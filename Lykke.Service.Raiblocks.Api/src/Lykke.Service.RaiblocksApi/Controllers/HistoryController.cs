@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Helpers;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -18,11 +19,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
     {
         private readonly IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> _historyService;
         private readonly IAssetService _assetService;
+        private readonly CoinConverter _coinConverter;
 
-        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> historyService, IAssetService assetService)
+        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> historyService, IAssetService assetService, CoinConverter coinConverter)
         {
             _historyService = historyService;
             _assetService = assetService;
+            _coinConverter = coinConverter;
         }
 
         /// <summary>
@@ -86,7 +89,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
             return history.Select(x => new HistoricalTransactionContract
             {
-                Amount = x.Amount,
+                Amount = _coinConverter.RawToLykkeRai(x.Amount),
                 AssetId = _assetService.AssetId,
                 FromAddress = x.FromAddress,
                 ToAddress = x.ToAddress,
@@ -123,7 +126,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
             return history.Select(x => new HistoricalTransactionContract
             {
-                Amount = x.Amount,
+                Amount = _coinConverter.RawToLykkeRai(x.Amount),
                 AssetId = _assetService.AssetId,
                 FromAddress = x.FromAddress,
                 ToAddress = x.ToAddress,
@@ -132,7 +135,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 //Timestamp = null
             }).Select(x =>
             {
-                var operationHistory = internalHistory.Where(y => y.Hash == x.Hash).FirstOrDefault();
+                var operationHistory = internalHistory.FirstOrDefault(y => y.Hash == x.Hash);
 
                 if (operationHistory != null)
                 {
@@ -159,10 +162,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 Address = address,
                 Type = AddressObservationType.From
             };
-            if (await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.RemoveAddressObservationAsync(addressObservation))
-                return Ok();
-            else
-                return StatusCode((int)HttpStatusCode.NoContent);
+            if (await _historyService.IsAddressObservedAsync(addressObservation) &&
+                await _historyService.RemoveAddressObservationAsync(addressObservation))
+            {
+                return Ok(); 
+            }
+            
+            return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         /// <summary>
@@ -181,10 +187,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 Address = address,
                 Type = AddressObservationType.To
             };
-            if (await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.RemoveAddressObservationAsync(addressObservation))
+            if (await _historyService.IsAddressObservedAsync(addressObservation) &&
+                await _historyService.RemoveAddressObservationAsync(addressObservation))
+            {
                 return Ok();
-            else
-                return StatusCode((int)HttpStatusCode.NoContent);
+            }
+
+            return StatusCode((int)HttpStatusCode.NoContent);
         }
     }
 }

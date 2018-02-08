@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
-using Lykke.AzureStorage.Tables.Paging;
 using Lykke.JobTriggers.Extenstions;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
@@ -9,7 +8,7 @@ using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Balances;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Transactions;
-using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
+using Lykke.Service.RaiblocksApi.Core.Helpers;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Balances;
 using Lykke.Service.RaiblocksApi.Core.Repositories.Transactions;
@@ -18,7 +17,6 @@ using Lykke.Service.RaiblocksApi.Core.Settings.ServiceSettings;
 using Lykke.Service.RaiblocksApi.Services;
 using Lykke.SettingsReader;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.WindowsAzure.Storage.Table;
 using RaiBlocks;
 
 namespace Lykke.Service.RaiblocksApi.Modules
@@ -106,7 +104,8 @@ namespace Lykke.Service.RaiblocksApi.Modules
                 .As<ITransactionService<TransactionBody, TransactionMeta, TransactionObservation>>();
 
             builder.RegisterType<AssetService>()
-                .As<IAssetService>();
+                .As<IAssetService>()
+                .WithParameter("accuracy", _settings.Nested(s => s.CurerntAccuracy).CurrentValue);
 
             builder.RegisterType<RaiBlocksRpc>()
                 .As<RaiBlocksRpc>()
@@ -114,7 +113,13 @@ namespace Lykke.Service.RaiblocksApi.Modules
 
             builder.RegisterType<RaiBlockchainService>()
                 .As<IBlockchainService>();
-
+            
+            // CoinConverter            
+            builder.RegisterType<CoinConverter>()
+                .As<CoinConverter>()
+                .WithParameter("accuracy", _settings.Nested(s => s.CurerntAccuracy).CurrentValue)
+                .WithParameter("maxAccuracy", _settings.Nested(s => s.MaxAccuracy).CurrentValue);
+            
             // TODO: Add your dependencies here
 
             builder.AddTriggers(pool =>

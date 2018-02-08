@@ -12,6 +12,11 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public string Name { get => "RaiBlocks"; }
 
-        public int Accuracy { get => 6; }
+        public int Accuracy { get; }
+
+        public AssetService(int accuracy)
+        {
+            Accuracy = accuracy;
+        }
     }
 }

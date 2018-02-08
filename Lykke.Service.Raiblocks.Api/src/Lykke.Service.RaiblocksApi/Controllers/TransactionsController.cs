@@ -11,22 +11,24 @@ using System.Net;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Helpers;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
     [Route("api/[controller]")]
     public class TransactionsController : Controller
     {
-
         private readonly ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> _transactionService;
         private readonly IAssetService _assetService;
         private readonly IBlockchainService _blockchainService;
-
-        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> transactionService, IAssetService assetService, IBlockchainService blockchainService)
+        private readonly CoinConverter _coinConverter;
+        
+        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> transactionService, IAssetService assetService, IBlockchainService blockchainService, CoinConverter coinConverter)
         {
             _transactionService = transactionService;
             _assetService = assetService;
             _blockchainService = blockchainService;
+            _coinConverter = coinConverter;
         }
 
         /// <summary>
@@ -48,7 +50,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
 
             var unsignTransaction = await _transactionService.GetUnsignSendTransactionAsync(
                 buildTransactionRequest.OperationId, buildTransactionRequest.FromAddress,
-                buildTransactionRequest.ToAddress, buildTransactionRequest.Amount, buildTransactionRequest.AssetId,
+                buildTransactionRequest.ToAddress, _coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount), buildTransactionRequest.AssetId,
                 buildTransactionRequest.IncludeFee);
             
             return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
@@ -115,7 +117,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                     OperationId = txMeta.OperationId,
                     State = state,
                     Timestamp = (txMeta.CompleteTimestamp ?? txMeta.BroadcastTimestamp).Value,
-                    Amount = txMeta.Amount,
+                    Amount = _coinConverter.RawToLykkeRai(txMeta.Amount),
                     Fee = "0",
                     Hash = txMeta.Hash,
                     Error = txMeta.Error,
