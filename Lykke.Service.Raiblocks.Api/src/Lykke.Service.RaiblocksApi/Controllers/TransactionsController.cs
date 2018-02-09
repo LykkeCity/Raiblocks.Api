@@ -12,6 +12,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Lykke.Service.RaiblocksApi.Core.Helpers;
+using Lykke.Service.BlockchainApi.Contract;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -39,13 +40,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpPost("single")]
         [SwaggerOperation("BuildNotSignedTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> BuildNotSignedSingleTransactionAsync([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
         {
-            TransactionExecutionError? error = null;
             var balance = await _blockchainService.GetAddressBalanceAsync(buildTransactionRequest.FromAddress);
-            if (BigInteger.Parse(balance) < BigInteger.Parse(buildTransactionRequest.Amount))
+            if (BigInteger.Parse(balance) < BigInteger.Parse(_coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount)))
             {
-                error = TransactionExecutionError.NotEnoughtBalance;
+                return StatusCode((int)HttpStatusCode.BadRequest, BlockchainErrorResponse.FromKnownError(BlockchainErrorCode.NotEnoughtBalance));
             }
 
             var unsignTransaction = await _transactionService.GetUnsignSendTransactionAsync(
@@ -55,7 +56,6 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             
             return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
             {
-                ErrorCode = error,
                 TransactionContext = unsignTransaction
             });
         }
@@ -68,7 +68,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpPost("broadcast")]
         [SwaggerOperation("BroadcastSignedTransaction")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(BroadcastTransactionResponse), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
+        [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> BroadcastSignedTransactionAsync([FromBody] BroadcastTransactionRequest broadcastTransactionRequest)
         {
             var result = await _transactionService.BroadcastSignedTransactionAsync(
@@ -79,7 +80,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transaction with specified operationId and signedTransaction has already been broadcasted"));
             }
 
-            return Ok(new BroadcastTransactionResponse());
+            return Ok();
         }
 
         /// <summary>
@@ -160,6 +161,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("BuildNotSignedManyInputsTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public IActionResult BuildNotSignedManyInputsTransaction([FromBody] BuildTransactionWithManyInputsRequest buildTransactionRequest)
         {
             return StatusCode((int)HttpStatusCode.NotImplemented);
@@ -174,6 +176,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [SwaggerOperation("BuildNotSignedManyOutputsTransaction")]
         [ProducesResponseType(typeof(BuildTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
+        [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public IActionResult BuildNotSignedManyOutputsTransaction([FromBody] BuildTransactionWithManyOutputsRequest buildTransactionRequest)
         {
             return StatusCode((int)HttpStatusCode.NotImplemented);
@@ -189,6 +192,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(RebuildTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public IActionResult RebuildNotSignedTransaction([FromBody] RebuildTransactionRequest rebuildTransactionRequest)
         {
             return StatusCode((int)HttpStatusCode.NotImplemented);
@@ -204,6 +208,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(BroadcastedTransactionWithManyInputsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public IActionResult GetBroadcastedManyInputsTransaction(string operationId)
         {
             return StatusCode((int)HttpStatusCode.NotImplemented);
@@ -220,6 +225,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(BroadcastedTransactionWithManyOutputsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public IActionResult GetBroadcastedManyOutputsTransaction(string operationId)
         {
             return StatusCode((int)HttpStatusCode.NotImplemented);
