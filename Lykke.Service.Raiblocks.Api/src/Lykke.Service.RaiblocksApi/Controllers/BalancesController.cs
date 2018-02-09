@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Balances;
 using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
 using Lykke.Service.RaiblocksApi.Core.Helpers;
+using Newtonsoft.Json.Linq;
+using Common.Log;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -19,13 +21,14 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         private readonly IBalanceService<BalanceObservation, AddressBalance> _balanceService;
         private readonly IAssetService _assetService;
         private readonly CoinConverter _coinConverter;
+        private readonly ILog _log;
 
-
-        public BalancesController(IBalanceService<BalanceObservation, AddressBalance> balanceService, IAssetService assetService, CoinConverter coinConverter)
+        public BalancesController(IBalanceService<BalanceObservation, AddressBalance> balanceService, IAssetService assetService, CoinConverter coinConverter, ILog log)
         {
             _balanceService = balanceService;
             _assetService = assetService;
             _coinConverter = coinConverter;
+            _log = log;
         }
 
         /// <summary>
@@ -45,6 +48,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             };
             if (!await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.AddBalanceObservationAsync(balanceObservation))
             {
+                await _log.WriteInfoAsync(nameof(AddBalanceObservationAsync), JObject.FromObject(balanceObservation).ToString(), $"Start observe balance for {address}");
                 return Ok();
             }
             else
@@ -74,6 +78,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 {
                     Address = address
                 });
+
+                await _log.WriteInfoAsync(nameof(AddBalanceObservationAsync), JObject.FromObject(balanceObservation).ToString(), $"Stop observe balance for {address}");
                 return Ok();
             }
             else

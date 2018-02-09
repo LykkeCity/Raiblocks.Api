@@ -51,7 +51,7 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="continuation">continuation data</param>
         /// <param name="partitionKey">partition key for azure storage</param>
         /// <returns>Address history</returns>
-        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take, string continuation, string partitionKey = null)
+        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetHistoryAsync(int take, string continuation, string partitionKey = null)
         {
             return await _addressHistoryEntryRepository.GetAsync(take, continuation, partitionKey);
 
@@ -65,7 +65,7 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="address">Address</param>
         /// <param name="afterHash">Block hash</param>
         /// <returns>Address history</returns>
-        public async Task<IEnumerable<TAddressHistory>> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash)
+        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash, string continuation = null)
         {
             if (address != null && partitionKey != null)
             {
@@ -74,11 +74,11 @@ namespace Lykke.Service.RaiblocksApi.Services
                     var afterRecord = await _addressHistoryEntryRepository.GetAsync(afterHash, partitionKey);
                     var afterBlockCount = afterRecord.BlockCount;
 
-                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address, afterBlockCount);
+                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address, afterBlockCount, continuation);
                 }
                 else
                 {
-                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address);
+                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address, continuation: continuation);
                 }
             }
             else

@@ -18,10 +18,12 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories
         where T : AzureTableEntity, new()
     {
         protected INoSQLTableStorage<T> _tableStorage;
+        private readonly ILog _log;
 
         public AzureRepository(IReloadingManager<string> connectionStringManager, ILog log)
         {
             _tableStorage = AzureTableStorage<T>.Create(connectionStringManager, this.GetType().Name, log);
+            _log = log;
         }
 
         public Task UpdateAsync(T item)

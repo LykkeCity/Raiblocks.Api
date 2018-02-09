@@ -13,6 +13,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Lykke.Service.RaiblocksApi.Core.Helpers;
 using Lykke.Service.BlockchainApi.Contract;
+using Newtonsoft.Json.Linq;
+using Common.Log;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -23,13 +25,15 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         private readonly IAssetService _assetService;
         private readonly IBlockchainService _blockchainService;
         private readonly CoinConverter _coinConverter;
-        
-        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> transactionService, IAssetService assetService, IBlockchainService blockchainService, CoinConverter coinConverter)
+        private readonly ILog _log;
+
+        public TransactionsController(ITransactionService<TransactionBody, TransactionMeta, TransactionObservation> transactionService, IAssetService assetService, IBlockchainService blockchainService, CoinConverter coinConverter, ILog log)
         {
             _transactionService = transactionService;
             _assetService = assetService;
             _blockchainService = blockchainService;
             _coinConverter = coinConverter;
+            _log = log;
         }
 
         /// <summary>
@@ -53,7 +57,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 buildTransactionRequest.OperationId, buildTransactionRequest.FromAddress,
                 buildTransactionRequest.ToAddress, _coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount), buildTransactionRequest.AssetId,
                 buildTransactionRequest.IncludeFee);
-            
+
             return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
             {
                 TransactionContext = unsignTransaction
@@ -75,11 +79,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             var result = await _transactionService.BroadcastSignedTransactionAsync(
                 broadcastTransactionRequest.OperationId, broadcastTransactionRequest.SignedTransaction);
 
-            if (result)
+            if (!result)
             {
                 return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transaction with specified operationId and signedTransaction has already been broadcasted"));
             }
 
+            await _log.WriteInfoAsync(nameof(BroadcastSignedTransactionAsync), JObject.FromObject(broadcastTransactionRequest).ToString(), $"Transaction broadcasted {broadcastTransactionRequest.OperationId}");
             return Ok();
         }
 
@@ -145,9 +150,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 OperationId = new Guid(operationId)
             };
             if (await _transactionService.IsTransactionObservedAsync(transactionObservation) && await _transactionService.RemoveTransactionObservationAsync(transactionObservation))
+            {
+                await _log.WriteInfoAsync(nameof(DeleteBroadcastedTransactionAsync), JObject.FromObject(transactionObservation).ToString(), $"Stop observe operation {operationId}");
                 return Ok();
-            else
-                return StatusCode((int)HttpStatusCode.NoContent);
+            }
+
+            return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         #region NotImplemented

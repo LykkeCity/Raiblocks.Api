@@ -32,12 +32,15 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
         /// <param name="address">Address</param>
         /// <param name="afterBlockCount">Block hash</param>
         /// <returns>History entries for address after specific hash</returns>
-        public async Task<IEnumerable<AddressHistoryEntry>> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0)
+        public async Task<(string continuation, IEnumerable<AddressHistoryEntry> items)> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0, string continuation = null)
         {
             var addressFieldName = partitionKey == Enum.GetName(typeof(AddressObservationType), AddressObservationType.From)
                 ? nameof(AddressHistoryEntry.FromAddress) : nameof(AddressHistoryEntry.ToAddress);
 
             var page = new PagingInfo { ElementCount = take };
+
+            page.Decode(continuation);
+
             var query = new TableQuery<AddressHistoryEntry>()
                  .Where(TableQuery.CombineFilters(
                      TableQuery.GenerateFilterCondition(nameof(AddressHistoryEntry.PartitionKey), QueryComparisons.Equal, partitionKey),
@@ -47,7 +50,10 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
                          TableOperators.And,
                          TableQuery.GenerateFilterCondition(addressFieldName, QueryComparisons.Equal, address)
                      )));
-            return await _tableStorage.ExecuteQueryWithPaginationAsync(query, page);
+
+            var items = await _tableStorage.ExecuteQueryWithPaginationAsync(query, page);
+
+            return (items.PagingInfo.Encode(), items);
         }
     }
 }

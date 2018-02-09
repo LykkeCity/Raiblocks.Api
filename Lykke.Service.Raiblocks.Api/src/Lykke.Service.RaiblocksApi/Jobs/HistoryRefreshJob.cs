@@ -3,6 +3,7 @@ using Lykke.JobTriggers.Triggers.Attributes;
 using Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Services;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,21 +26,16 @@ namespace Lykke.Service.RaiblocksApi.Jobs
             _historyService = historyService;
         }
 
-        /// <summary>
-        /// Job for update history for observed addresses
-        /// </summary>
-        /// <returns></returns>
-        [TimerTrigger("00:00:10")]
-        public async Task RefreshHistoryAsync()
+        private async Task RefreshHistory(AddressObservationType type)
         {
-            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "History balances start", DateTime.Now);
+            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", $"History job {Enum.GetName(typeof(AddressObservationType), type)} start", DateTime.Now);
 
             (string continuation, IEnumerable<AddressObservation> items) addressObservations;
             string continuation = null;
 
             do
             {
-                addressObservations = await _historyService.GetAddressObservationAsync(pageSize, continuation, Enum.GetName(typeof(AddressObservationType),AddressObservationType.From));
+                addressObservations = await _historyService.GetAddressObservationAsync(pageSize, continuation, Enum.GetName(typeof(AddressObservationType), type));
 
                 continuation = addressObservations.continuation;
 
@@ -51,15 +47,11 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                     if (addressBlockCount > 0)
                     {
-                        var currentHistoryTo = await _historyService.GetAddressHistoryAsync(addressBlockCount, null, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To));
-                        var currentHistoryFrom = await _historyService.GetAddressHistoryAsync(addressBlockCount, null, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From));
+                        var currentHistoryTo = (await _historyService.GetAddressHistoryAsync(addressBlockCount, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), addressObservation.Address)).items;
 
-                        if (currentHistoryTo.continuation != null || currentHistoryFrom.continuation != null)
-                        {
-                            await _log.WriteErrorAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", $"Block count less then db records. Address: {addressObservation.Address}", null);
-                        }
+                        var currentHistoryFrom = (await _historyService.GetAddressHistoryAsync(addressBlockCount, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From), addressObservation.Address)).items;
 
-                        var latestBlockNum = currentHistoryTo.items.Count() + currentHistoryFrom.items.Count();
+                        var latestBlockNum = currentHistoryTo.Count() + currentHistoryFrom.Count();
 
                         if (addressBlockCount > latestBlockNum)
                         {
@@ -79,18 +71,34 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                             {
                                 await _historyService.InsertAddressHistoryAsync(addressHistoryEntry);
                             }
+                            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), JArray.FromObject(addressHistoryEntries).ToString(), $"History {Enum.GetName(typeof(AddressObservationType), type)}  {addressObservation.Address} sync");
 
+                        }
+                        else if (addressBlockCount == latestBlockNum)
+                        {
+                            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", $"All history {Enum.GetName(typeof(AddressObservationType), type)} {addressObservation.Address} is already sync ");
                         }
                         else
                         {
-                            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "All history is already sync");
+                            await _log.WriteErrorAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", $"Block count less then db records. Address: {addressObservation.Address}", null);
                         }
                     }
                 }
-                
+
             } while (continuation != null);
 
-            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "History balances finished", DateTime.Now);
+            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", $"History job {Enum.GetName(typeof(AddressObservationType), type)} finished", DateTime.Now);
+        }
+
+        /// <summary>
+        /// Job for update history from addresses
+        /// </summary>
+        /// <returns></returns>
+        [TimerTrigger("00:00:10")]
+        public async Task RefreshHistoryAsync()
+        {
+            await RefreshHistory(AddressObservationType.From);
+            await RefreshHistory(AddressObservationType.To);
         }
     }
 }

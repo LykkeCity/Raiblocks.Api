@@ -11,6 +11,8 @@ using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
 using Lykke.Service.RaiblocksApi.Core.Helpers;
+using Common.Log;
+using Newtonsoft.Json.Linq;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -20,12 +22,14 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         private readonly IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> _historyService;
         private readonly IAssetService _assetService;
         private readonly CoinConverter _coinConverter;
+        private readonly ILog _log;
 
-        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> historyService, IAssetService assetService, CoinConverter coinConverter)
+        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> historyService, IAssetService assetService, CoinConverter coinConverter, ILog log)
         {
             _historyService = historyService;
             _assetService = assetService;
             _coinConverter = coinConverter;
+            _log = log;
         }
 
         /// <summary>
@@ -45,9 +49,11 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 Type = AddressObservationType.From
             };
             if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
+            {
+                await _log.WriteInfoAsync(nameof(AddHistoryObservationFromAsync), JObject.FromObject(addressObservation).ToString(), $"Start observe history from {address}");
                 return Ok();
-            else
-                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions from the address are already observed"));
+            }
+            return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions from the address are already observed"));
         }
 
         /// <summary>
@@ -67,9 +73,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 Type = AddressObservationType.To
             };
             if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
+            {
+                await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Start observe history to {address}");
                 return Ok();
-            else
-                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions to the address are already observed"));
+            }
+
+            return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions to the address are already observed"));
         }
 
         /// <summary>
@@ -87,7 +96,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             var history = await _historyService.GetAddressHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From), address, afterHash);
             var internalHistory = await _historyService.GetAddressOperationHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From), address);
 
-            return history.Select(x => new HistoricalTransactionContract
+            return history.items?.Select(x => new HistoricalTransactionContract
             {
                 Amount = _coinConverter.RawToLykkeRai(x.Amount),
                 AssetId = _assetService.AssetId,
@@ -124,7 +133,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             var history = await _historyService.GetAddressHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address, afterHash);
             var internalHistory = await _historyService.GetAddressOperationHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address);
 
-            return history.Select(x => new HistoricalTransactionContract
+            return history.items?.Select(x => new HistoricalTransactionContract
             {
                 Amount = _coinConverter.RawToLykkeRai(x.Amount),
                 AssetId = _assetService.AssetId,
@@ -165,9 +174,10 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             if (await _historyService.IsAddressObservedAsync(addressObservation) &&
                 await _historyService.RemoveAddressObservationAsync(addressObservation))
             {
-                return Ok(); 
+                await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Stop observe history from {address}");
+                return Ok();
             }
-            
+
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
@@ -190,6 +200,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             if (await _historyService.IsAddressObservedAsync(addressObservation) &&
                 await _historyService.RemoveAddressObservationAsync(addressObservation))
             {
+                await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Stop observe history to {address}");
                 return Ok();
             }
 

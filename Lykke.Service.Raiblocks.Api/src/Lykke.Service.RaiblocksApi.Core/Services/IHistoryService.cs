@@ -46,8 +46,8 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="address">Address</param>
         /// <param name="afterHash">Block hash</param>
         /// <returns>Address history</returns>
-        Task<IEnumerable<TAddressHistory>> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash);
-       
+        Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash = null, string continuation = null);
+
         /// <summary>
         /// Get stored address history
         /// </summary>
@@ -55,7 +55,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="continuation">continuation data</param>
         /// <param name="partitionKey">partition key for azure storage</param>
         /// <returns>Address history</returns>
-        Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take, string continuation, string partitionKey = null);
+        Task<(string continuation, IEnumerable<TAddressHistory> items)> GetHistoryAsync(int take, string continuation, string partitionKey = null);
 
         /// <summary>
         /// Save address history entry
