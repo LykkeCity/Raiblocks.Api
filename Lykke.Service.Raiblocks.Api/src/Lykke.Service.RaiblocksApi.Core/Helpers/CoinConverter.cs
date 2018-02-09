@@ -21,7 +21,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Helpers
 
             if (result)
             {
-                return (lykkeRaiParsed * (BigInteger) Math.Pow(10, MaxAccuracy - Accuracy)).ToString();
+                return (lykkeRaiParsed * BigInteger.Pow(10, MaxAccuracy - Accuracy)).ToString();
             } else
             {
                 throw new ArgumentException("Invalid lykkeRai value, must be BigInteger");
@@ -35,7 +35,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Helpers
 
             if (result)
             {
-                return (rawParsed / (BigInteger) Math.Pow(10, MaxAccuracy - Accuracy)).ToString();
+                return (rawParsed / BigInteger.Pow(10, MaxAccuracy - Accuracy)).ToString();
             }
             else
             {
