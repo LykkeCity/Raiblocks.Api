@@ -59,7 +59,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="address">Address</param>
         /// <param name="take">Amount of the returned history entries</param>
         /// <returns>Account history</returns>
-        Task<IEnumerable<(string from, string to, BigInteger amount, string hash)>> GetAddressHistoryAsync(string address, int take);
+        Task<IEnumerable<(string from, string to, BigInteger amount, string hash, TransactionType type)>> GetAddressHistoryAsync(string address, int take);
 
         /// <summary>
         /// Get address info
@@ -67,5 +67,13 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="address">Address</param>
         /// <returns>Return frontier and block count</returns>
         Task<(string frontier, long blockCount)> GetAddressInfoAsync(string address);
+    }
+
+    public enum TransactionType
+    {
+        open,
+        receive,
+        send,
+        change
     }
 }

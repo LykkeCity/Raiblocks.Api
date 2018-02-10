@@ -131,7 +131,7 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await policyResult;
         }
 
-        public async Task<IEnumerable<(string from, string to, BigInteger amount, string hash)>> GetAddressHistoryAsync(string address, int take)
+        public async Task<IEnumerable<(string from, string to, BigInteger amount, string hash, TransactionType type)>> GetAddressHistoryAsync(string address, int take)
         {
             var policyResult = Policy
                 .Handle<HttpRequestException>()
@@ -141,11 +141,11 @@ namespace Lykke.Service.RaiblocksApi.Services
                     return result.Entries.Select(x => {
                         if (x.Type == BlockType.send)
                         {
-                            return (address, x.RepresentativeBlock, x.Amount.Value, x.Frontier);
+                            return (address, x.RepresentativeBlock, x.Amount.Value, x.Frontier, TransactionType.send);
                         }
                         else if (x.Type == BlockType.receive)
                         {
-                            return (x.RepresentativeBlock, address, x.Amount.Value, x.Frontier);
+                            return (x.RepresentativeBlock, address, x.Amount.Value, x.Frontier, TransactionType.receive);
                         }
                         else
                         {

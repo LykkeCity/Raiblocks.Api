@@ -96,15 +96,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             var history = await _historyService.GetAddressHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From), address, afterHash);
             var internalHistory = await _historyService.GetAddressOperationHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.From), address);
 
-            return history.items?.Select(x => new HistoricalTransactionContract
+            return history.items?.OrderByDescending(x => x.BlockCount).Select(x => new HistoricalTransactionContract
             {
                 Amount = _coinConverter.RawToLykkeRai(x.Amount),
                 AssetId = _assetService.AssetId,
                 FromAddress = x.FromAddress,
                 ToAddress = x.ToAddress,
                 Hash = x.Hash,
-                //OperationId = null,
-                //Timestamp = null
             }).Select(x =>
             {
                 var operationHistory = internalHistory.FirstOrDefault(y => y.Hash == x.Hash);
@@ -133,15 +131,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             var history = await _historyService.GetAddressHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address, afterHash);
             var internalHistory = await _historyService.GetAddressOperationHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address);
 
-            return history.items?.Select(x => new HistoricalTransactionContract
+            return history.items?.OrderByDescending(x => x.BlockCount).Select(x => new HistoricalTransactionContract
             {
                 Amount = _coinConverter.RawToLykkeRai(x.Amount),
                 AssetId = _assetService.AssetId,
                 FromAddress = x.FromAddress,
                 ToAddress = x.ToAddress,
                 Hash = x.Hash,
-                //OperationId = null,
-                //Timestamp = null
             }).Select(x =>
             {
                 var operationHistory = internalHistory.FirstOrDefault(y => y.Hash == x.Hash);

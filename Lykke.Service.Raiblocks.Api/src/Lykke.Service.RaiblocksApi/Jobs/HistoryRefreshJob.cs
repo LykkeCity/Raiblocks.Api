@@ -63,7 +63,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                                 ToAddress = x.to,
                                 Amount = x.amount.ToString(),
                                 Hash = x.hash,
-                                Type = x.from == addressObservation.Address ? AddressObservationType.From : AddressObservationType.To,
+                                Type = x.type == TransactionType.send ? AddressObservationType.From : AddressObservationType.To,
                                 BlockCount = addressBlockCount - index
                             });
 
