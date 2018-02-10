@@ -1,8 +1,6 @@
 # Raiblocks.Api
 API Service for Raiblocks (NANO)
 
-Проект выполенен в соответствии с [шабоном Lykke](https://github.com/LykkeCity/lykke.dotnettemplates/tree/master/Lykke.Service.LykkeService).
-
 # Prerequisites
 
 - [Visual Studio 2017](https://www.microsoft.com/net/core#windowsvs2017)
@@ -10,7 +8,7 @@ API Service for Raiblocks (NANO)
 
 # Running
  
- Получение репозитория:
+ Cloning:
 ```
 git clone https://github.com/LykkeCity/Raiblocks.Api.git
 cd ./Raiblocks.Api
@@ -18,24 +16,24 @@ git submodule init
 git submodule update
 ```
 
-Запуск:
+Running:
 ```
 cd ./Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi
 dotnet restore
 dotnet run
 ```
-Перейти [http://localhost:5000/swagger/ui/#/](http://localhost:5000/swagger/ui/#/)
+Open [http://localhost:5000/swagger/ui/#/](http://localhost:5000/swagger/ui/#/)
 
 # Environment setup
 
-Путь к файлу настроек указывается в переменной среды "SettingUrl". В ней необходимо указать путь до [конфигурационного файла](https://github.com/mao29/Raiblocks.ApiService/blob/dev/Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi/appsettings.json).
+Path to settins file is set in environment variable "SettingUrl". You should put there path to [config file](https://github.com/LykkeCity/Raiblocks.Api/blob/dev/Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi/appsettings.json).
 
-Где в поле DataConnString необходимо указать строку подключения к Azure Table Storage. В поле NodeURL адррес [RPC Raiblocks](https://github.com/clemahieu/raiblocks/wiki/RPC-protocol).
+DataConnString should contain connection string to Azure Table Storage. NodeURL should contain [RPC Raiblocks endpoint](https://github.com/clemahieu/raiblocks/wiki/RPC-protocol).
 
 # Development
 
-Для хранения данных используется Azure Table Storage.
+Azure Table Storage is uset to store data.
 
-![Схема данных](https://github.com/mao29/Raiblocks.ApiService/blob/dev/Lykke.Service.Raiblocks.Api/ClassDiagram.gif)
+![Class diagram](https://github.com/LykkeCity/Raiblocks.Api/blob/dev/Lykke.Service.Raiblocks.Api/ClassDiagram.gif)
 
 
