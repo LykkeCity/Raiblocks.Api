@@ -13,5 +13,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses
         string Address { get; set; }
 
         AddressObservationType Type { get; set; }
+
+        DateTime TransactionTimestamp { get; set; }
     }
 }

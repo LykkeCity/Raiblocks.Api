@@ -22,5 +22,7 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
             get => (AddressObservationType)Enum.Parse(typeof(AddressObservationType), PartitionKey);
             set => PartitionKey = Enum.GetName(typeof(AddressObservationType), value);
         }
+
+        public DateTime TransactionTimestamp { get; set; }
     }
 }

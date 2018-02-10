@@ -110,6 +110,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 if (operationHistory != null)
                 {
                     x.OperationId = operationHistory.OperationId;
+                    x.Timestamp = operationHistory.TransactionTimestamp;
                 }
 
                 return x;
@@ -145,6 +146,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 if (operationHistory != null)
                 {
                     x.OperationId = operationHistory.OperationId;
+                    x.Timestamp = operationHistory.TransactionTimestamp;
                 }
 
                 return x;

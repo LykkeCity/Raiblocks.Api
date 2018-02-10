@@ -59,15 +59,16 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                         } else
                         {
                             txMeta.State = TransactionState.Confirmed;
-                            txMeta.CompleteTimestamp = DateTime.Now;
                             txMeta.Hash = broadcactResult.hash;
                             AddressOperationHistoryEntry operationHistoryEntry = new AddressOperationHistoryEntry
                             {
                                 OperationId = transactionObservation.OperationId,
                                 Hash = broadcactResult.hash,  
                                 Address = txMeta.FromAddress,
-                                Type = Core.Domain.Entities.Addresses.AddressObservationType.From
+                                Type = Core.Domain.Entities.Addresses.AddressObservationType.From,
+                                TransactionTimestamp = DateTime.Now
                             };
+                            txMeta.CompleteTimestamp = operationHistoryEntry.TransactionTimestamp;
                             txMeta.BlockCount = (await _blockchainService.GetAddressInfoAsync(operationHistoryEntry.Address)).blockCount;
                             await _historyService.AddAddressOperationHistoryAsync(operationHistoryEntry);
                         }
