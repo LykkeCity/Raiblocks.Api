@@ -29,11 +29,11 @@ Go to [http://localhost:5000/swagger/ui/#/](http://localhost:5000/swagger/ui/#/)
 
 Path to [config file](https://github.com/LykkeCity/Raiblocks.Api/blob/dev/Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi/appsettings.json) is specified in enviroment variabled "SettingUrl".
 
-DataConnString field contains connection string to Azure Table Storage. NodeURL field specifies the address of [RPC Raiblocks](https://github.com/clemahieu/raiblocks/wiki/RPC-protocol).
+DataConnString field contains connection string to Azure Table Storage. NodeURL field specifies the address of [RPC RaiBlocks](https://github.com/clemahieu/raiblocks/wiki/RPC-protocol).
 
 # Development
 
-Azure Table Storage is used to store date.
+Azure Table Storage is used to store data.
 
 ![Class diagram](https://github.com/LykkeCity/Raiblocks.Api/blob/dev/Lykke.Service.Raiblocks.Api/ClassDiagram.gif)
 
