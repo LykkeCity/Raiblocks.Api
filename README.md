@@ -35,4 +35,8 @@ Azure Table Storage is uset to store data.
 
 ![Class diagram](https://github.com/LykkeCity/Raiblocks.Api/blob/dev/Lykke.Service.Raiblocks.Api/ClassDiagram.gif)
 
+# See also
 
+ - [RaiBlocks Integration Sign Service](https://github.com/artem-kruglov/Raiblocks.Sign/tree/dev)
+
+ - [Test private RaiBlocks node with custom generis block](https://github.com/artem-kruglov/raiblocks/tree/testnet)
