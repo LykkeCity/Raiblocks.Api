@@ -10,13 +10,15 @@ API Service for Raiblocks (NANO)
 Getting the repository:
 ```
 git clone -b dev https://github.com/LykkeCity/Raiblocks.Api.git
-cd ./Raiblocks.ApiService
+cd ./Raiblocks.Api
 git submodule init
 git submodule update
 ```
 
 Running:
+
 ```
+export SettingsUrl=appsettings.json
 cd ./Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi
 dotnet restore
 dotnet run
