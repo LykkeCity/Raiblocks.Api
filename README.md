@@ -3,15 +3,14 @@ API Service for Raiblocks (NANO)
 
 # Prerequisites
 
-- [Visual Studio 2017](https://www.microsoft.com/net/core#windowsvs2017)
 - [ASP.NET Core 2](https://docs.microsoft.com/en-us/aspnet/core/getting-started)
 
 # Running
  
 Getting the repository:
 ```
-git clone https://github.com/LykkeCity/Raiblocks.Api.git
-cd ./Raiblocks.Api
+git clone -b dev https://github.com/artem-kruglov/Raiblocks.Api.git
+cd ./Raiblocks.ApiService
 git submodule init
 git submodule update
 ```
