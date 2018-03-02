@@ -8,7 +8,7 @@ API Service for Raiblocks (NANO)
 
 # Running
  
- Cloning:
+Getting the repository:
 ```
 git clone https://github.com/LykkeCity/Raiblocks.Api.git
 cd ./Raiblocks.Api
@@ -22,13 +22,13 @@ cd ./Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi
 dotnet restore
 dotnet run
 ```
-Open [http://localhost:5000/swagger/ui/#/](http://localhost:5000/swagger/ui/#/)
+Go to [http://localhost:5000/swagger/ui/#/](http://localhost:5000/swagger/ui/#/)
 
 # Environment setup
 
-Path to settins file is set in environment variable "SettingUrl". You should put there path to [config file](https://github.com/LykkeCity/Raiblocks.Api/blob/dev/Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi/appsettings.json).
+The path to [config file](https://github.com/LykkeCity/Raiblocks.Api/blob/dev/Lykke.Service.Raiblocks.Api/src/Lykke.Service.RaiblocksApi/appsettings.json) is specified in enviroment variabled "SettingUrl".
 
-DataConnString should contain connection string to Azure Table Storage. NodeURL should contain [RPC Raiblocks endpoint](https://github.com/clemahieu/raiblocks/wiki/RPC-protocol).
+The field DataConnString contains connection string to Azure Table Storage. The field NodeURL specify the address of [RPC Raiblocks](https://github.com/clemahieu/raiblocks/wiki/RPC-protocol).
 
 # Development
 
