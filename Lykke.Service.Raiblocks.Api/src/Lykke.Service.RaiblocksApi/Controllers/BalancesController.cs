@@ -12,6 +12,7 @@ using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Balances;
 using Lykke.Service.RaiblocksApi.Core.Helpers;
 using Newtonsoft.Json.Linq;
 using Common.Log;
+using Lykke.Service.RaiblocksApi.Helpers;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -21,11 +22,13 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         private readonly IBalanceService<BalanceObservation, AddressBalance> _balanceService;
         private readonly IAssetService _assetService;
         private readonly CoinConverter _coinConverter;
+        private readonly IBlockchainService _blockchainService;
         private readonly ILog _log;
 
-        public BalancesController(IBalanceService<BalanceObservation, AddressBalance> balanceService, IAssetService assetService, CoinConverter coinConverter, ILog log)
+        public BalancesController(IBalanceService<BalanceObservation, AddressBalance> balanceService, IBlockchainService blockchainService, IAssetService assetService, CoinConverter coinConverter, ILog log)
         {
             _balanceService = balanceService;
+            _blockchainService = blockchainService;
             _assetService = assetService;
             _coinConverter = coinConverter;
             _log = log;
@@ -42,19 +45,26 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> AddBalanceObservationAsync(string address)
         {
-            BalanceObservation balanceObservation = new BalanceObservation
+            if (_blockchainService.IsAddressValidOfflineAsync(address))
             {
-                Address = address,
-            };
-            if (!await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.AddBalanceObservationAsync(balanceObservation))
+                BalanceObservation balanceObservation = new BalanceObservation
+                {
+                    Address = address,
+                };
+                if (!await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.AddBalanceObservationAsync(balanceObservation))
+                {
+                    await _log.WriteInfoAsync(nameof(AddBalanceObservationAsync), JObject.FromObject(balanceObservation).ToString(), $"Start observe balance for {address}");
+                    return Ok();
+                }
+                else
+                {
+                    return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Specified address is already observed"));
+                }
+            } else
             {
-                await _log.WriteInfoAsync(nameof(AddBalanceObservationAsync), JObject.FromObject(balanceObservation).ToString(), $"Start observe balance for {address}");
-                return Ok();
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid address"));
             }
-            else
-            {
-                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Specified address is already observed"));
-            }
+
         }
 
         /// <summary>
@@ -68,24 +78,31 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> RemoveBalanceObservationAsync(string address)
         {
-            BalanceObservation balanceObservation = new BalanceObservation
+            if (_blockchainService.IsAddressValidOfflineAsync(address))
             {
-                Address = address
-            };
-            if (await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.RemoveBalanceObservationAsync(balanceObservation))
-            {
-                await _balanceService.RemoveBalanceAsync(new AddressBalance
+                BalanceObservation balanceObservation = new BalanceObservation
                 {
                     Address = address
-                });
+                };
+                if (await _balanceService.IsBalanceObservedAsync(balanceObservation) && await _balanceService.RemoveBalanceObservationAsync(balanceObservation))
+                {
+                    await _balanceService.RemoveBalanceAsync(new AddressBalance
+                    {
+                        Address = address
+                    });
 
-                await _log.WriteInfoAsync(nameof(AddBalanceObservationAsync), JObject.FromObject(balanceObservation).ToString(), $"Stop observe balance for {address}");
-                return Ok();
+                    await _log.WriteInfoAsync(nameof(AddBalanceObservationAsync), JObject.FromObject(balanceObservation).ToString(), $"Stop observe balance for {address}");
+                    return Ok();
+                }
+                else
+                {
+                    return StatusCode((int)HttpStatusCode.NoContent);
+                }
             }
             else
             {
-                return StatusCode((int)HttpStatusCode.NoContent);
-            }               
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid address"));
+            }              
         }
 
         /// <summary>
@@ -97,18 +114,25 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet]
         [SwaggerOperation("GetBalances")]
         [ProducesResponseType(typeof(PaginationResponse<WalletBalanceContract>), (int)HttpStatusCode.OK)]
-        public async Task<PaginationResponse<WalletBalanceContract>> GetBalancesAsync([FromQuery]int take = 100, [FromQuery]string continuation = null)
+        public async Task<IActionResult> GetBalancesAsync([FromQuery]string take = "100", [FromQuery]string continuation = null)
         {
-            var balances = await _balanceService.GetBalancesAsync(take, continuation);
-            return PaginationResponse.From(
-                balances.continuation,
-                balances.items.Select(b => new WalletBalanceContract {
-                    Address = b.Address,
-                    Balance = _coinConverter.RawToLykkeRai(b.Balance), 
-                    AssetId = _assetService.AssetId,
-                    Block = b.Block
-                }).ToArray());
-
+            if (int.TryParse(take, out var takeParsed) && take != null && ValidateHeper.IsContinuationValid(continuation))
+            {
+                var balances = await _balanceService.GetBalancesAsync(takeParsed, continuation);
+                return StatusCode((int)HttpStatusCode.OK, PaginationResponse.From(
+                    balances.continuation,
+                    balances.items.Select(b => new WalletBalanceContract
+                    {
+                        Address = b.Address,
+                        Balance = _coinConverter.RawToLykkeRai(b.Balance),
+                        AssetId = _assetService.AssetId,
+                        Block = b.Block
+                    }).ToArray()));
+            }
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid params"));
+            }
         }
 
     }

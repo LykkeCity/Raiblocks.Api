@@ -16,19 +16,21 @@ using Newtonsoft.Json.Linq;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/transactions/[controller]")]
     public class HistoryController : Controller
     {
         private readonly IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> _historyService;
         private readonly IAssetService _assetService;
         private readonly CoinConverter _coinConverter;
+        private readonly IBlockchainService _blockchainService;
         private readonly ILog _log;
 
-        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> historyService, IAssetService assetService, CoinConverter coinConverter, ILog log)
+        public HistoryController(IHistoryService<AddressHistoryEntry, AddressObservation, AddressOperationHistoryEntry> historyService, IAssetService assetService, CoinConverter coinConverter, IBlockchainService blockchainService, ILog log)
         {
             _historyService = historyService;
             _assetService = assetService;
             _coinConverter = coinConverter;
+            _blockchainService = blockchainService;
             _log = log;
         }
 
@@ -43,17 +45,24 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> AddHistoryObservationFromAsync(string address)
         {
-            AddressObservation addressObservation = new AddressObservation
+            if (_blockchainService.IsAddressValidOfflineAsync(address))
             {
-                Address = address,
-                Type = AddressObservationType.From
-            };
-            if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
-            {
-                await _log.WriteInfoAsync(nameof(AddHistoryObservationFromAsync), JObject.FromObject(addressObservation).ToString(), $"Start observe history from {address}");
-                return Ok();
+                AddressObservation addressObservation = new AddressObservation
+                {
+                    Address = address,
+                    Type = AddressObservationType.From
+                };
+                if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
+                {
+                    await _log.WriteInfoAsync(nameof(AddHistoryObservationFromAsync), JObject.FromObject(addressObservation).ToString(), $"Start observe history from {address}");
+                    return Ok();
+                }
+                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions from the address are already observed"));
             }
-            return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions from the address are already observed"));
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid address"));
+            }
         }
 
         /// <summary>
@@ -67,18 +76,25 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> AddHistoryObservationToAsync(string address)
         {
-            AddressObservation addressObservation = new AddressObservation
+            if (_blockchainService.IsAddressValidOfflineAsync(address))
             {
-                Address = address,
-                Type = AddressObservationType.To
-            };
-            if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
-            {
-                await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Start observe history to {address}");
-                return Ok();
-            }
+                AddressObservation addressObservation = new AddressObservation
+                {
+                    Address = address,
+                    Type = AddressObservationType.To
+                };
+                if (!await _historyService.IsAddressObservedAsync(addressObservation) && await _historyService.AddAddressObservationAsync(addressObservation))
+                {
+                    await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Start observe history to {address}");
+                    return Ok();
+                }
 
-            return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions to the address are already observed"));
+                return StatusCode((int)HttpStatusCode.Conflict, ErrorResponse.Create("Transactions to the address are already observed"));
+            }
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid address"));
+            }
         }
 
         /// <summary>
@@ -127,30 +143,36 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet("to/{address}")]
         [SwaggerOperation("GetHistoryTo")]
         [ProducesResponseType(typeof(IEnumerable<HistoricalTransactionContract>), (int)HttpStatusCode.OK)]
-        public async Task<IEnumerable<HistoricalTransactionContract>> GetHistoryToAsync(string address, [FromQuery]int take = 100, [FromQuery]string afterHash = null)
+        public async Task<IActionResult> GetHistoryToAsync(string address, [FromQuery]string take, [FromQuery]string afterHash = null)
         {
-            var history = await _historyService.GetAddressHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address, afterHash);
-            var internalHistory = await _historyService.GetAddressOperationHistoryAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address);
-
-            return history.items?.OrderByDescending(x => x.BlockCount).Select(x => new HistoricalTransactionContract
+            if (int.TryParse(take, out var takeParsed) && take != null)
             {
-                Amount = _coinConverter.RawToLykkeRai(x.Amount),
-                AssetId = _assetService.AssetId,
-                FromAddress = x.FromAddress,
-                ToAddress = x.ToAddress,
-                Hash = x.Hash,
-            }).Select(x =>
-            {
-                var operationHistory = internalHistory.FirstOrDefault(y => y.Hash == x.Hash);
-
-                if (operationHistory != null)
+                var history = await _historyService.GetAddressHistoryAsync(takeParsed, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address, afterHash);
+                var internalHistory = await _historyService.GetAddressOperationHistoryAsync(takeParsed, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), address);
+                return StatusCode((int)HttpStatusCode.OK, history.items?.OrderByDescending(x => x.BlockCount).Select(x => new HistoricalTransactionContract
                 {
-                    x.OperationId = operationHistory.OperationId;
-                    x.Timestamp = operationHistory.TransactionTimestamp;
-                }
+                    Amount = _coinConverter.RawToLykkeRai(x.Amount),
+                    AssetId = _assetService.AssetId,
+                    FromAddress = x.FromAddress,
+                    ToAddress = x.ToAddress,
+                    Hash = x.Hash,
+                }).Select(x =>
+                {
+                    var operationHistory = internalHistory.FirstOrDefault(y => y.Hash == x.Hash);
 
-                return x;
-            });
+                    if (operationHistory != null)
+                    {
+                        x.OperationId = operationHistory.OperationId;
+                        x.Timestamp = operationHistory.TransactionTimestamp;
+                    }
+
+                    return x;
+                }));
+            }
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid params"));
+            }
         }
 
         /// <summary>
@@ -159,24 +181,32 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <param name="address">Address</param>
         /// <returns>Status code</returns>
         [HttpDelete("from/{address}/observation")]
+        [HttpDelete("from/")]
         [SwaggerOperation("DeleteHistoryFrom")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> DeleteHistoryFromAsync(string address)
         {
-            AddressObservation addressObservation = new AddressObservation
+            if (_blockchainService.IsAddressValidOfflineAsync(address))
             {
-                Address = address,
-                Type = AddressObservationType.From
-            };
-            if (await _historyService.IsAddressObservedAsync(addressObservation) &&
-                await _historyService.RemoveAddressObservationAsync(addressObservation))
-            {
-                await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Stop observe history from {address}");
-                return Ok();
-            }
+                AddressObservation addressObservation = new AddressObservation
+                {
+                    Address = address,
+                    Type = AddressObservationType.From
+                };
+                if (await _historyService.IsAddressObservedAsync(addressObservation) &&
+                    await _historyService.RemoveAddressObservationAsync(addressObservation))
+                {
+                    await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Stop observe history from {address}");
+                    return Ok();
+                }
 
-            return StatusCode((int)HttpStatusCode.NoContent);
+                return StatusCode((int)HttpStatusCode.NoContent);
+            }
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid address"));
+            }
         }
 
         /// <summary>
@@ -185,24 +215,32 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <param name="address">Address</param>
         /// <returns>Status code</returns>
         [HttpDelete("to/{address}/observation")]
+        [HttpDelete("to/")]
         [SwaggerOperation("DeleteHistoryTo")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> DeleteHistoryToAsync(string address)
         {
-            AddressObservation addressObservation = new AddressObservation
+            if (_blockchainService.IsAddressValidOfflineAsync(address))
             {
-                Address = address,
-                Type = AddressObservationType.To
-            };
-            if (await _historyService.IsAddressObservedAsync(addressObservation) &&
-                await _historyService.RemoveAddressObservationAsync(addressObservation))
-            {
-                await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Stop observe history to {address}");
-                return Ok();
-            }
+                AddressObservation addressObservation = new AddressObservation
+                {
+                    Address = address,
+                    Type = AddressObservationType.To
+                };
+                if (await _historyService.IsAddressObservedAsync(addressObservation) &&
+                    await _historyService.RemoveAddressObservationAsync(addressObservation))
+                {
+                    await _log.WriteInfoAsync(nameof(AddHistoryObservationToAsync), JObject.FromObject(addressObservation).ToString(), $"Stop observe history to {address}");
+                    return Ok();
+                }
 
-            return StatusCode((int)HttpStatusCode.NoContent);
+                return StatusCode((int)HttpStatusCode.NoContent);
+            }
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid address"));
+            }
         }
     }
 }

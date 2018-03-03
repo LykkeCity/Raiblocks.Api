@@ -19,9 +19,16 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <summary>
         /// Check validity for address
         /// </summary>
-        /// <param name="address">Addresse</param>
+        /// <param name="address">Address</param>
         /// <returns>Validity</returns>
         Task<bool> IsAddressValidAsync(string address);
+
+        /// <summary>
+        /// Check validity for address offline
+        /// </summary>
+        /// <param name="address">Address</param>
+        /// <returns>Validity</returns>
+        bool IsAddressValidOfflineAsync(string address);
 
         /// <summary>
         /// Build unsined transaction

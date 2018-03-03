@@ -15,6 +15,7 @@ using Lykke.Service.RaiblocksApi.Core.Helpers;
 using Lykke.Service.BlockchainApi.Contract;
 using Newtonsoft.Json.Linq;
 using Common.Log;
+using Lykke.Service.RaiblocksApi.Helpers;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -47,21 +48,27 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> BuildNotSignedSingleTransactionAsync([FromBody] BuildSingleTransactionRequest buildTransactionRequest)
         {
-            var balance = await _blockchainService.GetAddressBalanceAsync(buildTransactionRequest.FromAddress);
-            if (BigInteger.Parse(balance) < BigInteger.Parse(_coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount)))
+            if (ValidateHeper.IsBuildSingleTransactionRequestValid(buildTransactionRequest, _blockchainService))
             {
-                return StatusCode((int)HttpStatusCode.BadRequest, BlockchainErrorResponse.FromKnownError(BlockchainErrorCode.NotEnoughtBalance));
+                var balance = await _blockchainService.GetAddressBalanceAsync(buildTransactionRequest.FromAddress);
+                if (BigInteger.Parse(balance) < BigInteger.Parse(_coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount)))
+                {
+                    return StatusCode((int)HttpStatusCode.BadRequest, BlockchainErrorResponse.FromKnownError(BlockchainErrorCode.NotEnoughtBalance));
+                }
+
+                var unsignTransaction = await _transactionService.GetUnsignSendTransactionAsync(
+                    buildTransactionRequest.OperationId, buildTransactionRequest.FromAddress,
+                    buildTransactionRequest.ToAddress, _coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount), buildTransactionRequest.AssetId,
+                    buildTransactionRequest.IncludeFee);
+
+                return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
+                {
+                    TransactionContext = unsignTransaction
+                });
+            } else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid params"));
             }
-
-            var unsignTransaction = await _transactionService.GetUnsignSendTransactionAsync(
-                buildTransactionRequest.OperationId, buildTransactionRequest.FromAddress,
-                buildTransactionRequest.ToAddress, _coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount), buildTransactionRequest.AssetId,
-                buildTransactionRequest.IncludeFee);
-
-            return StatusCode((int)HttpStatusCode.OK, new BuildTransactionResponse
-            {
-                TransactionContext = unsignTransaction
-            });
         }
 
         /// <summary>
@@ -94,44 +101,52 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <param name="operationId">Operation Id</param>
         /// <returns>Broadcasted transaction response</returns>
         [HttpGet("broadcast/single/{operationId}")]
+        [HttpGet("broadcast/single/")]
         [SwaggerOperation("GetBroadcastedSingleTransaction")]
         [ProducesResponseType(typeof(BroadcastedSingleTransactionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> GetBroadcastedSingleTransactionAsync(string operationId)
         {
-            var txMeta = await _transactionService.GetTransactionMetaAsync(operationId);
-            if (txMeta != null)
+            if (Guid.TryParse(operationId, out var operationIdGuid) && operationId != null)
             {
-                BroadcastedTransactionState state;
-
-                switch (txMeta.State)
+                var txMeta = await _transactionService.GetTransactionMetaAsync(operationId);
+                if (txMeta != null)
                 {
-                    case TransactionState.Confirmed:
-                        state = BroadcastedTransactionState.Completed;
-                        break;
-                    case TransactionState.Failed:
-                    case TransactionState.BlockChainFailed:
-                        state = BroadcastedTransactionState.Failed;
-                        break;
-                    default:
-                        state = BroadcastedTransactionState.InProgress;
-                        break;
+                    BroadcastedTransactionState state;
+
+                    switch (txMeta.State)
+                    {
+                        case TransactionState.Confirmed:
+                            state = BroadcastedTransactionState.Completed;
+                            break;
+                        case TransactionState.Failed:
+                        case TransactionState.BlockChainFailed:
+                            state = BroadcastedTransactionState.Failed;
+                            break;
+                        default:
+                            state = BroadcastedTransactionState.InProgress;
+                            break;
+                    }
+
+                    return Ok(new BroadcastedSingleTransactionResponse
+                    {
+                        OperationId = txMeta.OperationId,
+                        State = state,
+                        Timestamp = (txMeta.CompleteTimestamp ?? txMeta.BroadcastTimestamp).Value,
+                        Amount = _coinConverter.RawToLykkeRai(txMeta.Amount),
+                        Fee = "0",
+                        Hash = txMeta.Hash,
+                        Error = txMeta.Error,
+                        Block = txMeta.BlockCount
+                    });
                 }
-
-                return Ok(new BroadcastedSingleTransactionResponse
-                {
-                    OperationId = txMeta.OperationId,
-                    State = state,
-                    Timestamp = (txMeta.CompleteTimestamp ?? txMeta.BroadcastTimestamp).Value,
-                    Amount = _coinConverter.RawToLykkeRai(txMeta.Amount),
-                    Fee = "0",
-                    Hash = txMeta.Hash,
-                    Error = txMeta.Error,
-                    Block = txMeta.BlockCount
-                });
+                else
+                    return StatusCode((int)HttpStatusCode.NoContent, ErrorResponse.Create("Specified transaction not found"));
             }
             else
-                return StatusCode((int)HttpStatusCode.NoContent, ErrorResponse.Create("Specified transaction not found"));
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid guid"));
+            }
         }
 
         /// <summary>
@@ -140,22 +155,30 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <param name="operationId">Operation Id</param>
         /// <returns>HttpStatusCode</returns>
         [HttpDelete("broadcast/{operationId}")]
+        [HttpDelete("broadcast/")]
         [SwaggerOperation("DeleteBroadcastedTransaction")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> DeleteBroadcastedTransactionAsync(string operationId)
+        public async Task<IActionResult> DeleteBroadcastedTransactionAsync(string operationId = null)
         {
-            TransactionObservation transactionObservation = new TransactionObservation
+            if (Guid.TryParse(operationId, out var operationIdGuid) && operationId != null)
             {
-                OperationId = new Guid(operationId)
-            };
-            if (await _transactionService.IsTransactionObservedAsync(transactionObservation) && await _transactionService.RemoveTransactionObservationAsync(transactionObservation))
-            {
-                await _log.WriteInfoAsync(nameof(DeleteBroadcastedTransactionAsync), JObject.FromObject(transactionObservation).ToString(), $"Stop observe operation {operationId}");
-                return Ok();
-            }
+                TransactionObservation transactionObservation = new TransactionObservation
+                {
+                    OperationId = new Guid(operationId)
+                };
+                if (await _transactionService.IsTransactionObservedAsync(transactionObservation) && await _transactionService.RemoveTransactionObservationAsync(transactionObservation))
+                {
+                    await _log.WriteInfoAsync(nameof(DeleteBroadcastedTransactionAsync), JObject.FromObject(transactionObservation).ToString(), $"Stop observe operation {operationId}");
+                    return Ok();
+                }
 
-            return StatusCode((int)HttpStatusCode.NoContent);
+                return StatusCode((int)HttpStatusCode.NoContent);
+            }
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid guid"));
+            }
         }
 
         #region NotImplemented
@@ -212,6 +235,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <param name="operationId">Operation Id</param>
         /// <returns>Broadcasted transaction response</returns>
         [HttpGet("broadcast/many-inputs/{operationId}")]
+        [HttpGet("broadcast/many-inputs/")]
         [SwaggerOperation("GetBroadcastedManyInputsTransaction")]
         [ProducesResponseType(typeof(BroadcastedTransactionWithManyInputsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]
@@ -229,6 +253,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <param name="operationId">Operation Id</param>
         /// <returns>Broadcasted transaction response</returns>
         [HttpGet("broadcast/many-outputs/{operationId}")]
+        [HttpGet("broadcast/many-outputs/")]
         [SwaggerOperation("GetBroadcastedManyOutputsTransaction")]
         [ProducesResponseType(typeof(BroadcastedTransactionWithManyOutputsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotImplemented)]

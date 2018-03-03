@@ -169,5 +169,17 @@ namespace Lykke.Service.RaiblocksApi.Services
 
             return await policyResult;
         }
+
+        public bool IsAddressValidOfflineAsync(string address)
+        {
+            try
+            {
+                var raiAddress = new RaiAddress(address);
+                return true;
+            } catch (ArgumentException)
+            {
+                return false;
+            }
+        }
     }
 }

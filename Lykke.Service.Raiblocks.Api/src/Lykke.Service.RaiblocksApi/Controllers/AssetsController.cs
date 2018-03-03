@@ -8,6 +8,8 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Lykke.Service.BlockchainApi.Contract.Assets;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Contract;
+using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Helpers;
 
 namespace Lykke.Service.RaiblocksApi.Controllers
 {
@@ -33,19 +35,26 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [HttpGet]
         [SwaggerOperation("GetAssets")]
         [ProducesResponseType(typeof(PaginationResponse<AssetContract>), (int)HttpStatusCode.OK)]
-        public PaginationResponse<AssetContract> GetAssets([FromQuery]int take = 100, [FromQuery]string continuation = null)
+        public IActionResult GetAssets([FromQuery]string take = "100", [FromQuery]string continuation = null)
         {
-            return PaginationResponse.From(
-                null,
-                new List<AssetContract> {
-                    new AssetContract
-                    {
-                        AssetId = _assetService.AssetId,
-                        Name = _assetService.Name,
-                        Accuracy = _assetService.Accuracy
-                    }
-                }
-               );
+            if (int.TryParse(take, out var takeParsed) && take != null && ValidateHeper.IsContinuationValid(continuation))
+            {
+                return StatusCode((int)HttpStatusCode.OK, 
+                    PaginationResponse.From(
+                        null,
+                        new List<AssetContract> {
+                            new AssetContract
+                            {
+                                AssetId = _assetService.AssetId,
+                                Name = _assetService.Name,
+                                Accuracy = _assetService.Accuracy
+                            }
+                        }
+                        ));
+            } else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Invalid params"));
+            }
         }
 
         /// <summary>
