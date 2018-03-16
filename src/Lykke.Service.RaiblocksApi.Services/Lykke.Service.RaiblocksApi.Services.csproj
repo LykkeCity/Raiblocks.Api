@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\RaiBlocks.Net\RaiBlocks\RaiBlocks.csproj" />
+    <ProjectReference Include="..\..\RaiBlocks.Net\RaiBlocks\RaiBlocks.csproj" />
     <ProjectReference Include="..\Lykke.Service.RaiblocksApi.Core\Lykke.Service.RaiblocksApi.Core.csproj" />
   </ItemGroup>
 
