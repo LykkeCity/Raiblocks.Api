@@ -1,8 +1,15 @@
 ﻿{
+  // NOTE: Please, modify this settings only to reflect AppSettings structure.
+  // If you want to use local settings, add appsettings.Development.json file, which not version controlled
   "RaiblocksApiService": {
     "Db": {
-      "LogsConnString": "UseDevelopmentStorage=true"
-    }
+      "LogsConnString": "UseDevelopmentStorage=true",
+      "DataConnString": "DefaultEndpointsProtocol=https;AccountName=raiblocksnew;AccountKey=G1qnVM/xCyK66FnvI+ZxNOikYaDtxNXNo21FjluNjhMlM/c4kQ3TKCSLtYXisf+/AbmyC8lPT4tRXbZeebtQeg==;EndpointSuffix=core.windows.net"
+    },
+    "NodeAPI": {
+      "NodeURL": "http://5.101.78.176:55001"
+    },
+    "NetworkType": "Test"
   },
   "SlackNotifications": {
     "AzureQueue": {
