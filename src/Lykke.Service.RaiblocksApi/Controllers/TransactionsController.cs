@@ -83,6 +83,11 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         [ProducesResponseType(typeof(BlockchainErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> BroadcastSignedTransactionAsync([FromBody] BroadcastTransactionRequest broadcastTransactionRequest)
         {
+            if (!_blockchainService.IsSignedTransactionValid(broadcastTransactionRequest?.SignedTransaction))
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, ErrorResponse.Create("Transaction invalid"));
+            }
+
             var result = await _transactionService.BroadcastSignedTransactionAsync(
                 broadcastTransactionRequest.OperationId, broadcastTransactionRequest.SignedTransaction);
 

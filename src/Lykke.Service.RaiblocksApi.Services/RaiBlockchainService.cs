@@ -1,4 +1,5 @@
 ﻿using Lykke.Service.RaiblocksApi.Core.Services;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Polly;
 using RaiBlocks;
@@ -23,6 +24,26 @@ namespace Lykke.Service.RaiblocksApi.Services
         public RaiBlockchainService(RaiBlocksRpc raiBlocksRpc)
         {
             _raiBlocksRpc = raiBlocksRpc;
+        }
+
+        /// <summary>
+        /// Simple check validity for signed transaction
+        /// </summary>
+        /// <param name="signedTransaction"></param>
+        /// <returns>Validity</returns>
+        public bool IsSignedTransactionValid(string signedTransaction)
+        {
+            try
+            {
+                // TODO: make better
+                var a = JObject.Parse(signedTransaction);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
         }
 
         public async Task<string> CreateUnsignSendTransactionAsync(string address, string destination, string amount)
