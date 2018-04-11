@@ -48,6 +48,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                     foreach (KeyValuePair<string, string> balance in await _blockchainService.GetAddressBalancesAsync(balancesObservation.items.Select(x => x.Address)))
                     {
+                        await _log.WriteInfoAsync(nameof(BalanceRefreshJob), $"Env: {Program.EnvInfo}", $"Refreshing balance for {balance.Key}", DateTime.Now);
                         var addressBalance = new AddressBalance
                         {
                             Address = balance.Key,
