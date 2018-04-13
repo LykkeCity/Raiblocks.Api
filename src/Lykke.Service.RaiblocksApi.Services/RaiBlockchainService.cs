@@ -21,9 +21,18 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         private const int retryCount = 4;
 
+        private const int retryTimeout = 1;
+
+        private Policy policy = null;
+
         public RaiBlockchainService(RaiBlocksRpc raiBlocksRpc)
         {
             _raiBlocksRpc = raiBlocksRpc;
+
+            policy = Policy
+              .Handle<HttpRequestException>()
+              .Or<TaskCanceledException>()
+              .WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(retryTimeout));
         }
 
         /// <summary>
@@ -48,42 +57,38 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<string> CreateUnsignSendTransactionAsync(string address, string destination, string amount)
         {
-            var policyResult = Policy
-              .Handle<HttpRequestException>()
-              .RetryAsync(retryCount)
-              .ExecuteAsync(async () => {
-                  var raiAddress = new RaiAddress(address);
-                  var raiDestination = new RaiAddress(destination);
-                  var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiAddress);
+            var policyResult = policy.ExecuteAsync(async () =>
+            {
+                var raiAddress = new RaiAddress(address);
+                var raiDestination = new RaiAddress(destination);
+                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiAddress);
 
-                  return await Task.Run(async () =>
-                  {
-                      var txContext = JObject.FromObject(new BlockCreate
-                      {
-                          Type = BlockType.send,
-                          AccountNumber = raiAddress,
-                          Destination = raiDestination,
-                          Balance = accountInfo.Balance,
-                          Amount = new RaiUnits.RaiRaw(amount),
-                          Previous = accountInfo.Frontier
-                      });
-                      var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
+                return await Task.Run(async () =>
+                {
+                    var txContext = JObject.FromObject(new BlockCreate
+                    {
+                        Type = BlockType.send,
+                        AccountNumber = raiAddress,
+                        Destination = raiDestination,
+                        Balance = accountInfo.Balance,
+                        Amount = new RaiUnits.RaiRaw(amount),
+                        Previous = accountInfo.Frontier
+                    });
+                    var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
 
-                      txContext.Add("work", work.Work);
+                    txContext.Add("work", work.Work);
 
-                      return txContext.ToString();
-                  });
-              });
+                    return txContext.ToString();
+                });
+            });
 
             return await policyResult;
         }
 
         public async Task<Dictionary<string, string>> GetAddressBalancesAsync(IEnumerable<string> balanceObservation)
         {
-            var policyResult = Policy
-                .Handle<HttpRequestException>()
-                .RetryAsync(retryCount)
-                .ExecuteAsync(async () => {
+            var policyResult = policy.ExecuteAsync(async () =>
+                {
                     IEnumerable<RaiAddress> accounts = balanceObservation.Select(x => new RaiAddress(x));
                     var result = await _raiBlocksRpc.GetBalancesAsync(accounts);
                     return result.Balances.ToDictionary(x => x.Key, x => x.Value.Balance.ToString());
@@ -94,10 +99,8 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<string> GetAddressBalanceAsync(string address)
         {
-            var policyResult = Policy
-                .Handle<HttpRequestException>()
-                .RetryAsync(retryCount)
-                .ExecuteAsync(async () => {
+            var policyResult = policy.ExecuteAsync(async () =>
+                {
                     var result = await _raiBlocksRpc.GetBalanceAsync(new RaiAddress(address));
                     return result.Balance.ToString();
                 });
@@ -109,10 +112,8 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             try
             {
-                var policyResult = Policy
-                    .Handle<HttpRequestException>()
-                    .RetryAsync(retryCount)
-                    .ExecuteAsync(async () => {
+                var policyResult = policy.ExecuteAsync(async () =>
+                    {
                         var result = await _raiBlocksRpc.ValidateAccountAsync(new RaiAddress(address));
                         return result.IsValid();
                     });
@@ -128,10 +129,8 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<long> GetAddressBlockCountAsync(string address)
         {
-            var policyResult = Policy
-                .Handle<HttpRequestException>()
-                .RetryAsync(retryCount)
-                .ExecuteAsync(async () => {
+            var policyResult = policy.ExecuteAsync(async () =>
+                {
                     var result = await _raiBlocksRpc.GetAccountBlockCountAsync(new RaiAddress(address));
                     return result.BlockCount;
                 });
@@ -141,10 +140,8 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<(string hash, string error)> BroadcastSignedTransactionAsync(string signedTransaction)
         {
-            var policyResult = Policy
-                .Handle<HttpRequestException>()
-                .RetryAsync(retryCount)
-                .ExecuteAsync(async () => {
+            var policyResult = policy.ExecuteAsync(async () =>
+                {
                     var result = await _raiBlocksRpc.ProcessBlockAsync(signedTransaction);
                     return (result.Hash, result.Error);
                 });
@@ -154,12 +151,11 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<IEnumerable<(string from, string to, BigInteger amount, string hash, TransactionType type)>> GetAddressHistoryAsync(string address, int take)
         {
-            var policyResult = Policy
-                .Handle<HttpRequestException>()
-                .RetryAsync(retryCount)
-                .ExecuteAsync(async () => {
+            var policyResult = policy.ExecuteAsync(async () =>
+                {
                     var result = await _raiBlocksRpc.GetAccountHistoryAsync(new RaiAddress(address), take);
-                    return result.Entries.Select(x => {
+                    return result.Entries.Select(x =>
+                    {
                         if (x.Type == BlockType.send)
                         {
                             return (address, x.RepresentativeBlock, x.Amount.Value, x.Frontier, TransactionType.send);
@@ -180,10 +176,8 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         public async Task<(string frontier, long blockCount)> GetAddressInfoAsync(string address)
         {
-            var policyResult = Policy
-                .Handle<HttpRequestException>()
-                .RetryAsync(retryCount)
-                .ExecuteAsync(async () => {
+            var policyResult = policy.ExecuteAsync(async () =>
+                {
                     var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(new RaiAddress(address));
                     return (accountInfo.Frontier, accountInfo.BlockCount);
                 });
@@ -197,7 +191,8 @@ namespace Lykke.Service.RaiblocksApi.Services
             {
                 var raiAddress = new RaiAddress(address);
                 return true;
-            } catch (ArgumentException)
+            }
+            catch (ArgumentException)
             {
                 return false;
             }

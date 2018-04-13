@@ -31,7 +31,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         /// Refresh balances for observed addresses
         /// </summary>
         /// <returns></returns>
-        [TimerTrigger("00:00:10")]
+        [TimerTrigger("00:01:00")]
         public async Task RefreshBalancesAsync()
         {
             await _log.WriteInfoAsync(nameof(BalanceRefreshJob), $"Env: {Program.EnvInfo}", "Refresh balances start", DateTime.Now);
@@ -48,33 +48,37 @@ namespace Lykke.Service.RaiblocksApi.Jobs
 
                     foreach (KeyValuePair<string, string> balance in await _blockchainService.GetAddressBalancesAsync(balancesObservation.items.Select(x => x.Address)))
                     {
-                        await _log.WriteInfoAsync(nameof(BalanceRefreshJob), $"Env: {Program.EnvInfo}", $"Refreshing balance for {balance.Key}", DateTime.Now);
-                        var addressBalance = new AddressBalance
-                        {
-                            Address = balance.Key,
-                            Balance = balance.Value,
-                            Block = await _blockchainService.GetAddressBlockCountAsync(balance.Key)
-                        };
+                        try {
+                            var addressBalance = new AddressBalance
+                            {
+                                Address = balance.Key,
+                                Balance = balance.Value,
+                                Block = await _blockchainService.GetAddressBlockCountAsync(balance.Key)
+                            };
 
-                        if (await _balanceService.IsBalanceExistAsync(addressBalance))
-                        {
-                            if (BigInteger.Parse(balance.Value) > 0)
+                            if (await _balanceService.IsBalanceExistAsync(addressBalance))
                             {
-                                await _balanceService.UpdateBalance(addressBalance);
-                            } else
-                            {
-                                await _balanceService.RemoveBalanceAsync(addressBalance);
-                            }
-                            
-                        }
-                        else
-                        {
-                            if (BigInteger.Parse(balance.Value) > 0)
-                            {
-                                await _balanceService.AddBalance(addressBalance);
-                            }
-                        }
+                                if (BigInteger.Parse(balance.Value) > 0)
+                                {
+                                    await _balanceService.UpdateBalance(addressBalance);
+                                }
+                                else
+                                {
+                                    await _balanceService.RemoveBalanceAsync(addressBalance);
+                                }
 
+                            }
+                            else
+                            {
+                                if (BigInteger.Parse(balance.Value) > 0)
+                                {
+                                    await _balanceService.AddBalance(addressBalance);
+                                }
+                            }
+                        } catch (Exception e)
+                        {
+                            await _log.WriteErrorAsync(nameof(BalanceRefreshJob), $"Env: {Program.EnvInfo}", "Refresh balances failed", e);
+                        }
                     };
                 }
             } while (continuation != null);
