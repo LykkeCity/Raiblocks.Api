@@ -146,7 +146,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                     });
                 }
                 else
-                    return StatusCode((int)HttpStatusCode.NoContent, ErrorResponse.Create("Specified transaction not found"));
+                    return StatusCode((int)HttpStatusCode.NoContent);
             }
             else
             {
