@@ -86,7 +86,7 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             TTransactionBody transactionBody = await GetTransactionBodyByIdAsync(operationId);
 
-            if(transactionBody == null)
+            if (transactionBody == null)
             {
                 await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync), JObject.FromObject(new
                 {
@@ -115,7 +115,7 @@ namespace Lykke.Service.RaiblocksApi.Services
                 await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync), JObject.FromObject(transactionMeta).ToString(), $"Create new txMeta, with id: {operationId}");
 
                 var unsignTransaction = await _blockchainService.CreateUnsignSendTransactionAsync(transactionMeta.FromAddress, transactionMeta.ToAddress, transactionMeta.Amount);
-                
+
                 transactionBody = new TTransactionBody
                 {
                     OperationId = operationId,
@@ -125,7 +125,8 @@ namespace Lykke.Service.RaiblocksApi.Services
                 await SaveTransactionBodyAsync(transactionBody);
 
                 await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync), JObject.FromObject(transactionBody).ToString(), $"Create new txBody, with id: {operationId}");
-            } else
+            }
+            else
             {
                 await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync), JObject.FromObject(new
                 {
@@ -164,10 +165,11 @@ namespace Lykke.Service.RaiblocksApi.Services
 
             var txMeta = await GetTransactionMetaAsync(operationId.ToString());
 
-            if (txMeta.State == TransactionState.Broadcasted 
-                || txMeta.State == TransactionState.Confirmed 
+            if (txMeta.State == TransactionState.Broadcasted
+                || txMeta.State == TransactionState.Confirmed
                 || txMeta.State == TransactionState.Failed
-                || txMeta.State == TransactionState.BlockChainFailed)
+                || txMeta.State == TransactionState.BlockChainFailed
+                || txMeta.State == TransactionState.Signed)
             {
                 await _log.WriteInfoAsync(nameof(BroadcastSignedTransactionAsync), JObject.FromObject(txMeta).ToString(), "TxMeta already broadcasted or failed, with id: {operationId}");
                 return false;
