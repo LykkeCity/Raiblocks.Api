@@ -19,17 +19,26 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         {
             _log = log;
         }
-
+        
+        /// <summary>
+        /// Get API capabilities set.
+        /// </summary>
+        /// <returns>API capabilities set <see cref="CapabilitiesResponse"/>.</returns>
         [HttpGet]
         [SwaggerOperation("Capabilities")]
         [ProducesResponseType(typeof(CapabilitiesResponse), (int)HttpStatusCode.OK)]
-        public CapabilitiesResponse GetCapabilities(string address)
+        public CapabilitiesResponse GetCapabilities()
         {
             return new CapabilitiesResponse
             {
                 IsTransactionsRebuildingSupported = false,
                 AreManyInputsSupported = false,
-                AreManyOutputsSupported = false
+                AreManyOutputsSupported = false,
+                CanReturnExplorerUrl = true,
+                IsPublicAddressExtensionRequired = false,
+                IsReceiveTransactionRequired = true,
+                IsTestingTransfersSupported = false,
+                
             };
         }
     }
