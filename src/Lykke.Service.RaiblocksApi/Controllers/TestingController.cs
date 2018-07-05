@@ -15,12 +15,12 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <param name="testingTransferRequest">Testing transfer request <see cref="TestingTransferRequest"/>.</param>
         /// <returns>Http status code <see cref="IActionResult"/>.</returns>
         [HttpPost("transfers")]
-        [SwaggerOperation("Constants")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotImplemented)]
+        [SwaggerOperation("TestTransfer")]
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [ProducesResponseType((int) HttpStatusCode.NotImplemented)]
         public IActionResult PostTransfer([FromBody] TestingTransferRequest testingTransferRequest)
         {
-            return StatusCode((int)HttpStatusCode.NotImplemented);
+            return StatusCode((int) HttpStatusCode.NotImplemented);
         }
     }
 }
