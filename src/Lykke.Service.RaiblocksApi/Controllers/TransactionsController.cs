@@ -53,7 +53,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                 var balance = await _blockchainService.GetAddressBalanceAsync(buildTransactionRequest.FromAddress);
                 if (BigInteger.Parse(balance) < BigInteger.Parse(_coinConverter.LykkeRaiToRaw(buildTransactionRequest.Amount)))
                 {
-                    return StatusCode((int)HttpStatusCode.BadRequest, BlockchainErrorResponse.FromKnownError(BlockchainErrorCode.NotEnoughtBalance));
+                    return StatusCode((int)HttpStatusCode.BadRequest, BlockchainErrorResponse.FromKnownError(BlockchainErrorCode.NotEnoughBalance));
                 }
 
                 var unsignTransaction = await _transactionService.GetUnsignSendTransactionAsync(

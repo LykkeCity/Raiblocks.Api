@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.RaiblocksApi.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -25,7 +26,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         /// <returns></returns>
         [HttpGet]
         [SwaggerOperation("IsAlive")]
-        [ProducesResponseType(typeof(IsAliveResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BlockchainIsAliveResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
         public IActionResult Get()
         {
@@ -38,7 +39,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
             }
 
             // NOTE: Feel free to extend IsAliveResponse, to display job-specific indicators
-            return Ok(new IsAliveResponse
+            return Ok(new BlockchainIsAliveResponse
             {
                 Name = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationName,
                 Version = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationVersion,
@@ -53,7 +54,8 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                     {
                         Type = i.Type,
                         Value = i.Value
-                    })
+                    }),
+                ContractVersion = new Version("1.0.0")
             });
         }
     }
