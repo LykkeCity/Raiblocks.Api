@@ -96,11 +96,26 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
             string amount, string assetId = "XBR", bool includeFee = false);
 
         /// <summary>
+        /// Get new or exist unsigned recive transaction
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <param name="sendTransactionHash">Send transaction hash</param>
+        /// <returns>Unsigned transaction context</returns>
+        Task<string> GetUnsignReciveTransactionAsync(Guid operationId, string sendTransactionHash);
+
+        /// <summary>
         /// Publish signed transaction to network
         /// </summary>
         /// <param name="operationId">Operation Id</param>
         /// <param name="signedTransaction">Signed transaction</param>
         /// <returns>true if publish, false if already publish</returns>
         Task<bool> BroadcastSignedTransactionAsync(Guid operationId, string signedTransaction);
+
+        /// <summary>
+        /// Check is transaction already broacasted.
+        /// </summary>
+        /// <param name="operationId">Operation id.</param>
+        /// <returns>true if broadcasted.</returns>
+        Task<bool> IsTransactionAlreadyBroadcastAsync(Guid operationId);
     }
 }

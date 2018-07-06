@@ -85,6 +85,37 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await policyResult;
         }
 
+
+        public async Task<string> CreateUnsignReceiveTransactionAsync(string sendTransactionHash)
+        {
+            var policyResult = policy.ExecuteAsync(async () =>
+            {
+
+                var retrieveBlock = await _raiBlocksRpc.GetRetrieveBlockAsync(sendTransactionHash);
+
+                var destination = retrieveBlock?.Contents?.Destination;
+                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(new RaiAddress(destination));
+
+                return await Task.Run(async () =>
+                {
+                    var txContext = JObject.FromObject(new BlockCreate
+                    {
+                        Type = BlockType.receive,
+                        AccountNumber = destination,
+                        Source = sendTransactionHash,
+                        Previous = accountInfo.Frontier
+                    });
+                    var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
+
+                    txContext.Add("work", work.Work);
+
+                    return txContext.ToString();
+                });
+            });
+
+            return await policyResult;
+        }
+
         public async Task<Dictionary<string, string>> GetAddressBalancesAsync(IEnumerable<string> balanceObservation)
         {
             var policyResult = policy.ExecuteAsync(async () =>

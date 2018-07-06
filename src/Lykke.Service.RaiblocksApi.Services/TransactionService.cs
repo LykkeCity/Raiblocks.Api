@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
-    public class TransactionService<TTransactionBody, TTransactionMeta, TTransactionObservation> : ITransactionService<TTransactionBody, TTransactionMeta, TTransactionObservation>
+    public class
+        TransactionService<TTransactionBody, TTransactionMeta, TTransactionObservation> : ITransactionService<
+            TTransactionBody, TTransactionMeta, TTransactionObservation>
         where TTransactionBody : ITransactionBody, new()
         where TTransactionMeta : ITransactionMeta, new()
         where TTransactionObservation : ITransactionObservation, new()
@@ -21,7 +23,10 @@ namespace Lykke.Service.RaiblocksApi.Services
         private readonly IBlockchainService _blockchainService;
         private readonly ILog _log;
 
-        public TransactionService(ITransactionBodyRepository<TTransactionBody> transactionBodyRepository, ITransactionMetaRepository<TTransactionMeta> transactionMetaRepository, ITransactionObservationRepository<TTransactionObservation> transactionObservationRepository, IBlockchainService blockchainService, ILog log)
+        public TransactionService(ITransactionBodyRepository<TTransactionBody> transactionBodyRepository,
+            ITransactionMetaRepository<TTransactionMeta> transactionMetaRepository,
+            ITransactionObservationRepository<TTransactionObservation> transactionObservationRepository,
+            IBlockchainService blockchainService, ILog log)
         {
             _transactionBodyRepository = transactionBodyRepository;
             _transactionMetaRepository = transactionMetaRepository;
@@ -67,7 +72,8 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="pageSize">Abount of transaction observation</param>
         /// <param name="continuation">ontinuation data</param>
         /// <returns>ontinuation data and transaction observation</returns>
-        public async Task<(string continuation, IEnumerable<TTransactionObservation> items)> GetTransactionObservationAsync(int pageSize, string continuation)
+        public async Task<(string continuation, IEnumerable<TTransactionObservation> items)>
+            GetTransactionObservationAsync(int pageSize, string continuation)
         {
             return await _transactionObservationRepository.GetAsync(pageSize, continuation);
         }
@@ -82,7 +88,8 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="assetId">Asset Id</param>
         /// <param name="includeFee">Include fee</param>
         /// <returns>Unsigned transaction context</returns>
-        public async Task<string> GetUnsignSendTransactionAsync(Guid operationId, string fromAddress, string toAddress, string amount, string assetId = "XBR", bool includeFee = false)
+        public async Task<string> GetUnsignSendTransactionAsync(Guid operationId, string fromAddress, string toAddress,
+            string amount, string assetId = "XBR", bool includeFee = false)
         {
             TTransactionBody transactionBody = await GetTransactionBodyByIdAsync(operationId);
 
@@ -107,14 +114,18 @@ namespace Lykke.Service.RaiblocksApi.Services
                     Amount = amount,
                     IncludeFee = includeFee,
                     State = TransactionState.NotSigned,
-                    CreateTimestamp = DateTime.Now
+                    CreateTimestamp = DateTime.Now,
+                    TransactionType = TransactionType.send,
                 };
 
                 await SaveTransactionMetaAsync(transactionMeta);
 
-                await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync), JObject.FromObject(transactionMeta).ToString(), $"Create new txMeta, with id: {operationId}");
+                await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync),
+                    JObject.FromObject(transactionMeta).ToString(), $"Create new txMeta, with id: {operationId}");
 
-                var unsignTransaction = await _blockchainService.CreateUnsignSendTransactionAsync(transactionMeta.FromAddress, transactionMeta.ToAddress, transactionMeta.Amount);
+                var unsignTransaction =
+                    await _blockchainService.CreateUnsignSendTransactionAsync(transactionMeta.FromAddress,
+                        transactionMeta.ToAddress, transactionMeta.Amount);
 
                 transactionBody = new TTransactionBody
                 {
@@ -124,7 +135,8 @@ namespace Lykke.Service.RaiblocksApi.Services
 
                 await SaveTransactionBodyAsync(transactionBody);
 
-                await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync), JObject.FromObject(transactionBody).ToString(), $"Create new txBody, with id: {operationId}");
+                await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync),
+                    JObject.FromObject(transactionBody).ToString(), $"Create new txBody, with id: {operationId}");
             }
             else
             {
@@ -137,6 +149,64 @@ namespace Lykke.Service.RaiblocksApi.Services
                     assetId,
                     includeFee
                 }).ToString(), $"Return already exist unsigned transaction, with id: {operationId}");
+            }
+
+            return transactionBody.UnsignedTransaction;
+        }
+
+        /// <summary>
+        /// Get new or exist unsigned recive transaction
+        /// </summary>
+        /// <param name="operationId">Operation Id</param>
+        /// <param name="sendTransactionHash">Send transaction hash</param>
+        /// <returns>Unsigned transaction context</returns>
+        public async Task<string> GetUnsignReciveTransactionAsync(Guid operationId, string sendTransactionHash)
+        {
+            TTransactionBody transactionBody = await GetTransactionBodyByIdAsync(operationId);
+
+            if (transactionBody == null)
+            {
+                await _log.WriteInfoAsync(nameof(GetUnsignReciveTransactionAsync), JObject.FromObject(new
+                {
+                    operationId,
+                    sendTransactionHash,
+                }).ToString(), $"Create new unsigned recive transaction, with id: {operationId}");
+
+                TTransactionMeta transactionMeta = new TTransactionMeta
+                {
+                    OperationId = operationId,
+                    TransactionType = TransactionType.receive,
+                    SendHash = sendTransactionHash,
+                    State = TransactionState.NotSigned,
+                    CreateTimestamp = DateTime.Now
+                };
+
+                await SaveTransactionMetaAsync(transactionMeta);
+
+                await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync),
+                    JObject.FromObject(transactionMeta).ToString(), $"Create new txMeta, with id: {operationId}");
+
+                var unsignTransaction =
+                    await _blockchainService.CreateUnsignReceiveTransactionAsync(transactionMeta.SendHash);
+
+                transactionBody = new TTransactionBody
+                {
+                    OperationId = operationId,
+                    UnsignedTransaction = unsignTransaction
+                };
+
+                await SaveTransactionBodyAsync(transactionBody);
+
+                await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync),
+                    JObject.FromObject(transactionBody).ToString(), $"Create new txBody, with id: {operationId}");
+            }
+            else
+            {
+                await _log.WriteInfoAsync(nameof(GetUnsignSendTransactionAsync), JObject.FromObject(new
+                {
+                    operationId,
+                    sendTransactionHash,
+                }).ToString(), $"Return already exist unsigned recive transaction, with id: {operationId}");
             }
 
             return transactionBody.UnsignedTransaction;
@@ -165,13 +235,11 @@ namespace Lykke.Service.RaiblocksApi.Services
 
             var txMeta = await GetTransactionMetaAsync(operationId.ToString());
 
-            if (txMeta.State == TransactionState.Broadcasted
-                || txMeta.State == TransactionState.Confirmed
-                || txMeta.State == TransactionState.Failed
-                || txMeta.State == TransactionState.BlockChainFailed
-                || txMeta.State == TransactionState.Signed)
+            if (await IsTransactionAlreadyBroadcastAsync(operationId))
             {
-                await _log.WriteInfoAsync(nameof(BroadcastSignedTransactionAsync), JObject.FromObject(txMeta).ToString(), "TxMeta already broadcasted or failed, with id: {operationId}");
+                await _log.WriteInfoAsync(nameof(BroadcastSignedTransactionAsync),
+                    JObject.FromObject(txMeta).ToString(),
+                    "TxMeta already broadcasted or failed, with id: {operationId}");
                 return false;
             }
 
@@ -186,9 +254,33 @@ namespace Lykke.Service.RaiblocksApi.Services
 
             await CreateObservationAsync(transactionObservation);
 
-            await _log.WriteInfoAsync(nameof(BroadcastSignedTransactionAsync), JObject.FromObject(transactionObservation).ToString(), $"Observe new transaction, with id: {operationId}");
+            await _log.WriteInfoAsync(nameof(BroadcastSignedTransactionAsync),
+                JObject.FromObject(transactionObservation).ToString(),
+                $"Observe new transaction, with id: {operationId}");
 
             return true;
+        }
+
+        /// <summary>
+        /// Check is transaction already broacasted.
+        /// </summary>
+        /// <param name="operationId">Operation id.</param>
+        /// <returns>true if broadcasted.</returns>
+        public async Task<bool> IsTransactionAlreadyBroadcastAsync(Guid operationId)
+        {
+            var txMeta = await GetTransactionMetaAsync(operationId.ToString());
+
+            if (txMeta != null
+                && (txMeta.State == TransactionState.Broadcasted
+                    || txMeta.State == TransactionState.Confirmed
+                    || txMeta.State == TransactionState.Failed
+                    || txMeta.State == TransactionState.BlockChainFailed
+                    || txMeta.State == TransactionState.Signed))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -250,6 +342,5 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             return _transactionMetaRepository.UpdateAsync(transactionMeta);
         }
-
     }
 }

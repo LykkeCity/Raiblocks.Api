@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Lykke.Service.RaiblocksApi.Core.Services;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions
 {
@@ -38,6 +39,10 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Transactions
         public DateTime? CompleteTimestamp { get; set; }
 
         public long BlockCount { get; set; }
+        
+        public TransactionType TransactionType { get; set; }
+        
+        public string SendHash { get; set; }
     }
 
 }

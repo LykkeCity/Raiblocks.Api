@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lykke.Service.RaiblocksApi.Core.Services;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -25,6 +26,10 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions
         string Hash { get; set; }
 
         Int64 BlockCount { get; set; }
+
+        TransactionType TransactionType { get; set; }
+
+        string SendHash { get; set; }
 
         DateTime? CreateTimestamp { get; set; }
 

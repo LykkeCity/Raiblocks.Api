@@ -38,13 +38,20 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         bool IsAddressValidOfflineAsync(string address);
 
         /// <summary>
-        /// Build unsined transaction
+        /// Build unsined send transaction
         /// </summary>
         /// <param name="address">Address from</param>
         /// <param name="destination">Address to</param>
         /// <param name="amount">Amount</param>
         /// <returns>Unsined transaction</returns>
         Task<string> CreateUnsignSendTransactionAsync(string address, string destination, string amount);
+        
+        /// <summary>
+        /// Build unsined receive transaction
+        /// </summary>
+        /// <param name="sendTransactionHash">Send transaction hash</param>
+        /// <returns>Unsined transaction</returns>
+        Task<string> CreateUnsignReceiveTransactionAsync(string sendTransactionHash);
 
         /// <summary>
         /// Get balance for address
@@ -73,7 +80,8 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="address">Address</param>
         /// <param name="take">Amount of the returned history entries</param>
         /// <returns>Account history</returns>
-        Task<IEnumerable<(string from, string to, BigInteger amount, string hash, TransactionType type)>> GetAddressHistoryAsync(string address, int take);
+        Task<IEnumerable<(string from, string to, BigInteger amount, string hash, TransactionType type)>>
+            GetAddressHistoryAsync(string address, int take);
 
         /// <summary>
         /// Get address info

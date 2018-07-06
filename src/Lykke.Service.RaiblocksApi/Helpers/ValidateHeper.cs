@@ -46,5 +46,21 @@ namespace Lykke.Service.RaiblocksApi.Helpers
 
             return true;
         }
+        
+        
+        public static bool IsBuildSingleReciveTransactionRequestValid(BuildSingleReceiveTransactionRequest buildSingleReceiveTransactionRequest, IBlockchainService blockchainService)
+        {
+            if(buildSingleReceiveTransactionRequest.OperationId == null || buildSingleReceiveTransactionRequest.OperationId == System.Guid.Empty)
+            {
+                return false;
+            }
+
+            if (buildSingleReceiveTransactionRequest.SendTransactionHash == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
