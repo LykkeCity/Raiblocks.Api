@@ -55,7 +55,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                         Type = i.Type,
                         Value = i.Value
                     }),
-                ContractVersion = new Version("1.1.0")
+                ContractVersion = new Version("1.3.0")
             });
         }
     }
