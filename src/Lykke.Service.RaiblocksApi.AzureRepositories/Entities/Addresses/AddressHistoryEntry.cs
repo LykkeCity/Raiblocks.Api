@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Lykke.Service.RaiblocksApi.Core.Services;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
 {
@@ -14,21 +15,26 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Entities.Addresses
         public string ToAddress { get; set; }
 
         public DateTime? TransactionTimestamp { get; set; }
-        
-        [IgnoreProperty]
-        public string AssetId { get; set; }
+
+        [IgnoreProperty] public string AssetId { get; set; }
 
         public string Amount { get; set; }
 
         [IgnoreProperty]
-        public string Hash { get => RowKey; set => RowKey = value; }
+        public string Hash
+        {
+            get => RowKey;
+            set => RowKey = value;
+        }
 
         public long BlockCount { get; set; }
+
+        public TransactionType TransactionType { get; set; }
 
         [IgnoreProperty]
         public AddressObservationType Type
         {
-            get => (AddressObservationType)Enum.Parse(typeof(AddressObservationType), PartitionKey);
+            get => (AddressObservationType) Enum.Parse(typeof(AddressObservationType), PartitionKey);
             set => PartitionKey = Enum.GetName(typeof(AddressObservationType), value);
         }
     }
