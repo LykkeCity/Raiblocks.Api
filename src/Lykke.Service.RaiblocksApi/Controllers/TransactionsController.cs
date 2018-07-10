@@ -102,7 +102,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
         public async Task<IActionResult> BuildNotSignedSingleReceiveTransactionAsync(
             [FromBody] BuildSingleReceiveTransactionRequest buildSingleReceiveTransactionRequest)
         {
-            if (ValidateHeper.IsBuildSingleReciveTransactionRequestValid(buildSingleReceiveTransactionRequest,
+            if (ValidateHeper.IsBuildSingleReceiveTransactionRequestValid(buildSingleReceiveTransactionRequest,
                 _blockchainService))
             {
                 if (await _transactionService.IsTransactionAlreadyBroadcastAsync(buildSingleReceiveTransactionRequest
@@ -113,7 +113,7 @@ namespace Lykke.Service.RaiblocksApi.Controllers
                             "Transaction is already broadcasted or [DELETE] /api/transactions/broadcast/{operationId} is called"));
                 }
 
-                var unsignTransaction = await _transactionService.GetUnsignReciveTransactionAsync(
+                var unsignTransaction = await _transactionService.GetUnsignReceiveTransactionAsync(
                     buildSingleReceiveTransactionRequest.OperationId,
                     buildSingleReceiveTransactionRequest.SendTransactionHash);
 

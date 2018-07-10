@@ -155,22 +155,22 @@ namespace Lykke.Service.RaiblocksApi.Services
         }
 
         /// <summary>
-        /// Get new or exist unsigned recive transaction
+        /// Get new or exist unsigned receive transaction
         /// </summary>
         /// <param name="operationId">Operation Id</param>
         /// <param name="sendTransactionHash">Send transaction hash</param>
         /// <returns>Unsigned transaction context</returns>
-        public async Task<string> GetUnsignReciveTransactionAsync(Guid operationId, string sendTransactionHash)
+        public async Task<string> GetUnsignReceiveTransactionAsync(Guid operationId, string sendTransactionHash)
         {
             TTransactionBody transactionBody = await GetTransactionBodyByIdAsync(operationId);
 
             if (transactionBody == null)
             {
-                await _log.WriteInfoAsync(nameof(GetUnsignReciveTransactionAsync), JObject.FromObject(new
+                await _log.WriteInfoAsync(nameof(GetUnsignReceiveTransactionAsync), JObject.FromObject(new
                 {
                     operationId,
                     sendTransactionHash,
-                }).ToString(), $"Create new unsigned recive transaction, with id: {operationId}");
+                }).ToString(), $"Create new unsigned receive transaction, with id: {operationId}");
 
                 TTransactionMeta transactionMeta = new TTransactionMeta
                 {
@@ -206,7 +206,7 @@ namespace Lykke.Service.RaiblocksApi.Services
                 {
                     operationId,
                     sendTransactionHash,
-                }).ToString(), $"Return already exist unsigned recive transaction, with id: {operationId}");
+                }).ToString(), $"Return already exist unsigned receive transaction, with id: {operationId}");
             }
 
             return transactionBody.UnsignedTransaction;

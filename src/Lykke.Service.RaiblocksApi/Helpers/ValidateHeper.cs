@@ -48,7 +48,7 @@ namespace Lykke.Service.RaiblocksApi.Helpers
         }
         
         
-        public static bool IsBuildSingleReciveTransactionRequestValid(BuildSingleReceiveTransactionRequest buildSingleReceiveTransactionRequest, IBlockchainService blockchainService)
+        public static bool IsBuildSingleReceiveTransactionRequestValid(BuildSingleReceiveTransactionRequest buildSingleReceiveTransactionRequest, IBlockchainService blockchainService)
         {
             if(buildSingleReceiveTransactionRequest.OperationId == null || buildSingleReceiveTransactionRequest.OperationId == System.Guid.Empty)
             {
