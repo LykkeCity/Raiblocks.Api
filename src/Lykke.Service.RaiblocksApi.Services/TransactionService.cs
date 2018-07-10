@@ -172,13 +172,19 @@ namespace Lykke.Service.RaiblocksApi.Services
                     sendTransactionHash,
                 }).ToString(), $"Create new unsigned receive transaction, with id: {operationId}");
 
+                var nodetxMeta = await _blockchainService.GetTransactionMetaAsync(sendTransactionHash);
+
                 TTransactionMeta transactionMeta = new TTransactionMeta
                 {
                     OperationId = operationId,
-                    TransactionType = TransactionType.receive,
-                    SendHash = sendTransactionHash,
+                    FromAddress = nodetxMeta.FromAddress,
+                    ToAddress = nodetxMeta.ToAddress,
+                    AssetId = nodetxMeta.AssetId,
+                    Amount = nodetxMeta.Amount,
+                    IncludeFee = nodetxMeta.IncludeFee,
                     State = TransactionState.NotSigned,
-                    CreateTimestamp = DateTime.Now
+                    CreateTimestamp = DateTime.Now,
+                    TransactionType = TransactionType.receive,
                 };
 
                 await SaveTransactionMetaAsync(transactionMeta);
@@ -187,7 +193,7 @@ namespace Lykke.Service.RaiblocksApi.Services
                     JObject.FromObject(transactionMeta).ToString(), $"Create new txMeta, with id: {operationId}");
 
                 var unsignTransaction =
-                    await _blockchainService.CreateUnsignReceiveTransactionAsync(transactionMeta.SendHash);
+                    await _blockchainService.CreateUnsignReceiveTransactionAsync(sendTransactionHash);
 
                 transactionBody = new TTransactionBody
                 {

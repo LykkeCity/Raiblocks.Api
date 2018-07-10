@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions;
 
 namespace Lykke.Service.RaiblocksApi.Core.Services
 {
@@ -45,7 +46,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="amount">Amount</param>
         /// <returns>Unsined transaction</returns>
         Task<string> CreateUnsignSendTransactionAsync(string address, string destination, string amount);
-        
+
         /// <summary>
         /// Build unsined receive transaction
         /// </summary>
@@ -89,6 +90,13 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="address">Address</param>
         /// <returns>Return frontier and block count</returns>
         Task<(string frontier, long blockCount)> GetAddressInfoAsync(string address);
+
+        /// <summary>
+        /// Get transaction meta from node
+        /// </summary>
+        /// <param name="hash">Transaction hash.</param>
+        /// <returns></returns>
+        Task<ITransactionMeta> GetTransactionMetaAsync(string hash);
     }
 
     public enum TransactionType

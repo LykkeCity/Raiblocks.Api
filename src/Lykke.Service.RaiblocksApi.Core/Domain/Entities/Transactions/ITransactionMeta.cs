@@ -29,8 +29,6 @@ namespace Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions
 
         TransactionType TransactionType { get; set; }
 
-        string SendHash { get; set; }
-
         DateTime? CreateTimestamp { get; set; }
 
         DateTime? SignTimestamp { get; set; }

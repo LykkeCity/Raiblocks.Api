@@ -12,12 +12,15 @@ using System.Linq;
 using System.Net.Http;
 using System.Numerics;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions;
+using Lykke.Service.RaiblocksApi.Services.Models;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
     public class RaiBlockchainService : IBlockchainService
     {
         private readonly RaiBlocksRpc _raiBlocksRpc;
+        private readonly IAssetService _assetService;
 
         private const int retryCount = 4;
 
@@ -25,9 +28,10 @@ namespace Lykke.Service.RaiblocksApi.Services
 
         private Policy policy = null;
 
-        public RaiBlockchainService(RaiBlocksRpc raiBlocksRpc)
+        public RaiBlockchainService(RaiBlocksRpc raiBlocksRpc, IAssetService assetService)
         {
             _raiBlocksRpc = raiBlocksRpc;
+            _assetService = assetService;
 
             policy = Policy
                 .Handle<HttpRequestException>()
@@ -233,6 +237,28 @@ namespace Lykke.Service.RaiblocksApi.Services
             {
                 var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(new RaiAddress(address));
                 return (accountInfo.Frontier, accountInfo.BlockCount);
+            });
+
+            return await policyResult;
+        }
+
+        public async Task<ITransactionMeta> GetTransactionMetaAsync(string hash)
+        {
+            var policyResult = policy.ExecuteAsync(async () =>
+            {
+                var retrieveBlock =
+                    (await _raiBlocksRpc.GetRetrieveBlocksInfoAsync(new List<string> {hash})).Blocks[hash];
+                return new TransactionMeta
+                {
+                    Amount = retrieveBlock.Amount,
+                    AssetId = _assetService.AssetId,
+                    FromAddress = retrieveBlock.BlockAccount,
+                    ToAddress = retrieveBlock.Contents.Destination,
+                    Hash = hash,
+                    IncludeFee = false,
+                    TransactionType =
+                        retrieveBlock.Contents.Type == BlockType.send ? TransactionType.send : TransactionType.receive
+                };
             });
 
             return await policyResult;
