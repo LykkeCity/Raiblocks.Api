@@ -7,6 +7,7 @@ using RaiBlocks.Actions;
 using RaiBlocks.ValueObjects;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http;
 using System.Numerics;
@@ -16,7 +17,6 @@ namespace Lykke.Service.RaiblocksApi.Services
 {
     public class RaiBlockchainService : IBlockchainService
     {
-
         private readonly RaiBlocksRpc _raiBlocksRpc;
 
         private const int retryCount = 4;
@@ -30,9 +30,9 @@ namespace Lykke.Service.RaiblocksApi.Services
             _raiBlocksRpc = raiBlocksRpc;
 
             policy = Policy
-              .Handle<HttpRequestException>()
-              .Or<TaskCanceledException>()
-              .WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(retryTimeout));
+                .Handle<HttpRequestException>()
+                .Or<TaskCanceledException>()
+                .WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(retryTimeout));
         }
 
         /// <summary>
@@ -52,7 +52,6 @@ namespace Lykke.Service.RaiblocksApi.Services
             {
                 return false;
             }
-
         }
 
         public async Task<string> CreateUnsignSendTransactionAsync(string address, string destination, string amount)
@@ -90,27 +89,50 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             var policyResult = policy.ExecuteAsync(async () =>
             {
-
                 var retrieveBlock = await _raiBlocksRpc.GetRetrieveBlockAsync(sendTransactionHash);
 
                 var destination = retrieveBlock?.Contents?.Destination;
-                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(new RaiAddress(destination));
+                var raiDestination = new RaiAddress(destination);
+                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiDestination);
 
-                return await Task.Run(async () =>
+                if (accountInfo.Error != null &&
+                    accountInfo.Error.Equals("Account not found", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var txContext = JObject.FromObject(new BlockCreate
+                    return await Task.Run(async () =>
                     {
-                        Type = BlockType.receive,
-                        AccountNumber = destination,
-                        Source = sendTransactionHash,
-                        Previous = accountInfo.Frontier
+                        var txContext = JObject.FromObject(new BlockCreate
+                        {
+                            Type = BlockType.open,
+                            AccountNumber = destination,
+                            RepresentativeNumber = destination,
+                            Source = sendTransactionHash
+                        });
+                        var work = await _raiBlocksRpc.GetWorkAsync(
+                            (await _raiBlocksRpc.GetAccountKeyAsync(raiDestination)).Key);
+
+                        txContext.Add("work", work.Work);
+
+                        return txContext.ToString();
                     });
-                    var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
+                }
+                else
+                {
+                    return await Task.Run(async () =>
+                    {
+                        var txContext = JObject.FromObject(new BlockCreate
+                        {
+                            Type = BlockType.receive,
+                            AccountNumber = destination,
+                            Source = sendTransactionHash,
+                            Previous = accountInfo.Frontier
+                        });
+                        var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
 
-                    txContext.Add("work", work.Work);
+                        txContext.Add("work", work.Work);
 
-                    return txContext.ToString();
-                });
+                        return txContext.ToString();
+                    });
+                }
             });
 
             return await policyResult;
@@ -119,11 +141,11 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<Dictionary<string, string>> GetAddressBalancesAsync(IEnumerable<string> balanceObservation)
         {
             var policyResult = policy.ExecuteAsync(async () =>
-                {
-                    IEnumerable<RaiAddress> accounts = balanceObservation.Select(x => new RaiAddress(x));
-                    var result = await _raiBlocksRpc.GetBalancesAsync(accounts);
-                    return result.Balances.ToDictionary(x => x.Key, x => x.Value.Balance.ToString());
-                });
+            {
+                IEnumerable<RaiAddress> accounts = balanceObservation.Select(x => new RaiAddress(x));
+                var result = await _raiBlocksRpc.GetBalancesAsync(accounts);
+                return result.Balances.ToDictionary(x => x.Key, x => x.Value.Balance.ToString());
+            });
 
             return await policyResult;
         }
@@ -131,10 +153,10 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<string> GetAddressBalanceAsync(string address)
         {
             var policyResult = policy.ExecuteAsync(async () =>
-                {
-                    var result = await _raiBlocksRpc.GetBalanceAsync(new RaiAddress(address));
-                    return result.Balance.ToString();
-                });
+            {
+                var result = await _raiBlocksRpc.GetBalanceAsync(new RaiAddress(address));
+                return result.Balance.ToString();
+            });
 
             return await policyResult;
         }
@@ -144,10 +166,10 @@ namespace Lykke.Service.RaiblocksApi.Services
             try
             {
                 var policyResult = policy.ExecuteAsync(async () =>
-                    {
-                        var result = await _raiBlocksRpc.ValidateAccountAsync(new RaiAddress(address));
-                        return result.IsValid();
-                    });
+                {
+                    var result = await _raiBlocksRpc.ValidateAccountAsync(new RaiAddress(address));
+                    return result.IsValid();
+                });
 
                 return await policyResult;
             }
@@ -155,16 +177,15 @@ namespace Lykke.Service.RaiblocksApi.Services
             {
                 return false;
             }
-
         }
 
         public async Task<long> GetAddressBlockCountAsync(string address)
         {
             var policyResult = policy.ExecuteAsync(async () =>
-                {
-                    var result = await _raiBlocksRpc.GetAccountBlockCountAsync(new RaiAddress(address));
-                    return result.BlockCount;
-                });
+            {
+                var result = await _raiBlocksRpc.GetAccountBlockCountAsync(new RaiAddress(address));
+                return result.BlockCount;
+            });
 
             return await policyResult;
         }
@@ -172,35 +193,36 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<(string hash, string error)> BroadcastSignedTransactionAsync(string signedTransaction)
         {
             var policyResult = policy.ExecuteAsync(async () =>
-                {
-                    var result = await _raiBlocksRpc.ProcessBlockAsync(signedTransaction);
-                    return (result.Hash, result.Error);
-                });
+            {
+                var result = await _raiBlocksRpc.ProcessBlockAsync(signedTransaction);
+                return (result.Hash, result.Error);
+            });
 
             return await policyResult;
         }
 
-        public async Task<IEnumerable<(string from, string to, BigInteger amount, string hash, TransactionType type)>> GetAddressHistoryAsync(string address, int take)
+        public async Task<IEnumerable<(string from, string to, BigInteger amount, string hash, TransactionType type)>>
+            GetAddressHistoryAsync(string address, int take)
         {
             var policyResult = policy.ExecuteAsync(async () =>
+            {
+                var result = await _raiBlocksRpc.GetAccountHistoryAsync(new RaiAddress(address), take);
+                return result.Entries.Select(x =>
                 {
-                    var result = await _raiBlocksRpc.GetAccountHistoryAsync(new RaiAddress(address), take);
-                    return result.Entries.Select(x =>
+                    if (x.Type == BlockType.send)
                     {
-                        if (x.Type == BlockType.send)
-                        {
-                            return (address, x.RepresentativeBlock, x.Amount.Value, x.Frontier, TransactionType.send);
-                        }
-                        else if (x.Type == BlockType.receive)
-                        {
-                            return (x.RepresentativeBlock, address, x.Amount.Value, x.Frontier, TransactionType.receive);
-                        }
-                        else
-                        {
-                            throw new Exception("Unknown history type");
-                        }
-                    });
+                        return (address, x.RepresentativeBlock, x.Amount.Value, x.Frontier, TransactionType.send);
+                    }
+                    else if (x.Type == BlockType.receive)
+                    {
+                        return (x.RepresentativeBlock, address, x.Amount.Value, x.Frontier, TransactionType.receive);
+                    }
+                    else
+                    {
+                        throw new Exception("Unknown history type");
+                    }
                 });
+            });
 
             return await policyResult;
         }
@@ -208,10 +230,10 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<(string frontier, long blockCount)> GetAddressInfoAsync(string address)
         {
             var policyResult = policy.ExecuteAsync(async () =>
-                {
-                    var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(new RaiAddress(address));
-                    return (accountInfo.Frontier, accountInfo.BlockCount);
-                });
+            {
+                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(new RaiAddress(address));
+                return (accountInfo.Frontier, accountInfo.BlockCount);
+            });
 
             return await policyResult;
         }
