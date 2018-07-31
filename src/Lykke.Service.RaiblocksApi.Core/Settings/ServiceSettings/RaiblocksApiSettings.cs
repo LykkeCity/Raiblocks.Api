@@ -4,6 +4,6 @@
     {
         public DbSettings Db { get; set; }
 
-        public NodeAPISettings nodeAPI { get; set; }        
+        public NodeAPISettings NodeAPI { get; set; }
     }
 }

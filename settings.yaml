@@ -11,7 +11,12 @@ RaiblocksApiService:
             types:
                 - AzureTableStorage      
                 - Tag
-
+    NodeAPI:
+        NodeURL:
+            settings-key: "RaiblocksApiService-NodeURL"
+            types:
+                - Tag
+            
 MonitoringServiceClient:
     MonitoringServiceUrl:
         settings-key: MonitoringServiceUrl       

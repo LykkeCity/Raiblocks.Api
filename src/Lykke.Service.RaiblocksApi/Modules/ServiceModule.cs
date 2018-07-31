@@ -112,7 +112,7 @@ namespace Lykke.Service.RaiblocksApi.Modules
 
             builder.RegisterType<RaiBlocksRpc>()
                 .As<RaiBlocksRpc>()
-                .WithParameter("url", _settings.Nested(s => s.nodeAPI.NodeURL).CurrentValue);
+                .WithParameter("url", _settings.Nested(s => s.NodeAPI.NodeURL).CurrentValue);
 
             builder.RegisterType<RaiBlockchainService>()
                 .As<IBlockchainService>();
