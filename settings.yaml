@@ -4,11 +4,13 @@ RaiblocksApiService:
             settings-key: "RaiblocksApiService-LogsConnString"
             types:
                 - AzureBlobStorage
+                - Tag
 
         DataConnString:
             settings-key: "RaiblocksApiService-DataConnString"
             types:
-                - AzureTableStorage       
+                - AzureTableStorage      
+                - Tag
 
 MonitoringServiceClient:
     MonitoringServiceUrl:
