@@ -13,11 +13,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="7.0.1" />
+    <PackageReference Include="Lykke.RaiBlocks.Client" Version="1.0.0" />
     <PackageReference Include="Polly-Signed" Version="5.9.0" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\RaiBlocks.Net\RaiBlocks\RaiBlocks.csproj" />
     <ProjectReference Include="..\Lykke.Service.RaiblocksApi.Core\Lykke.Service.RaiblocksApi.Core.csproj" />
   </ItemGroup>
 </Project>
