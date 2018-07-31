@@ -27,4 +27,5 @@ SlackNotifications:
             settings-key: SlackNotificationsConnString
             types:
                 - AzureTableStorage
-        QueueName: "slack-notifications"
+        QueueName: 
+            settings-key: SlackQueueName
