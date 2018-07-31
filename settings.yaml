@@ -1,0 +1,24 @@
+RaiblocksApiService:
+    Db:
+        LogsConnString:
+            settings-key: "RaiblocksApiService-LogsConnString"
+            types:
+                - AzureBlobStorage
+
+        DataConnString:
+            settings-key: "RaiblocksApiService-DataConnString"
+            types:
+                - AzureTableStorage       
+
+MonitoringServiceClient:
+    MonitoringServiceUrl:
+        settings-key: MonitoringServiceUrl       
+
+SlackNotifications:
+    AzureQueue:
+        ConnectionString:
+            settings-key: SlackNotificationsConnString
+            types:
+                - AzureTableStorage
+        QueueName:
+            "slack-notifications"
