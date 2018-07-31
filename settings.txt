@@ -8,6 +8,10 @@
       "NodeURL":  "${RaiblocksApiService-NodeURL}"
     }
   },
+  "MonitoringServiceClient": 
+  {
+    "MonitoringServiceUrl": "${MonitoringServiceUrl}"
+  },
   "SlackNotifications": {
     "AzureQueue": {
       "ConnectionString": "${SlackNotificationsConnString}:[AzureTableStorage]",

@@ -23,6 +23,8 @@ namespace Lykke.Service.RaiblocksApi
 {
     public class Startup
     {
+        private string _monitoringServiceUrl;
+
         public IHostingEnvironment Environment { get; }
         public IContainer ApplicationContainer { get; private set; }
         public IConfigurationRoot Configuration { get; }
@@ -59,6 +61,10 @@ namespace Lykke.Service.RaiblocksApi
 
                 var builder = new ContainerBuilder();
                 var appSettings = Configuration.LoadSettings<AppSettings>();
+                if (appSettings.CurrentValue.MonitoringServiceClient != null)
+                {
+                    _monitoringServiceUrl = appSettings.CurrentValue.MonitoringServiceClient.MonitoringServiceUrl;
+                }
 
                 Log = CreateLogWithSlack(services, appSettings);
 
@@ -124,6 +130,12 @@ namespace Lykke.Service.RaiblocksApi
                 _triggerHostTask = _triggerHost.Start();
 
                 await Log.WriteMonitorAsync("", $"Env: {Program.EnvInfo}", "Started");
+
+#if (!DEBUG)
+
+                await AutoRegistrationInMonitoring.RegisterAsync(Configuration, _monitoringServiceUrl, Log);
+
+#endif
             }
             catch (Exception ex)
             {

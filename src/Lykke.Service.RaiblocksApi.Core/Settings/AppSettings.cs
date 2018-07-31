@@ -6,6 +6,7 @@ namespace Lykke.Service.RaiblocksApi.Core.Settings
     public class AppSettings
     {
         public RaiblocksApiSettings RaiblocksApiService { get; set; }
-        public SlackNotificationsSettings SlackNotifications { get; set; }
+        public SlackNotificationsSettings SlackNotifications { get; set; }    
+        public MonitoringServiceClientSettings MonitoringServiceClient { get; set; }
     }
 }
