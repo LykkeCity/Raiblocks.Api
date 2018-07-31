@@ -97,6 +97,14 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="hash">Transaction hash.</param>
         /// <returns></returns>
         Task<ITransactionMeta> GetTransactionMetaAsync(string hash);
+        
+        /// <summary>
+        /// Get previous blocks in chain
+        /// </summary>
+        /// <param name="hash">Block hash</param>
+        /// <param name="count">Count</param>
+        /// <returns>List of hashes</returns>
+        Task<List<string>> GetPreviousBlocksAsync(string hash, long count);
     }
 
     public enum TransactionType

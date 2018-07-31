@@ -264,6 +264,18 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await policyResult;
         }
 
+        public async Task<List<string>> GetPreviousBlocksAsync(string hash, long count)
+        {
+            var policyResult = policy.ExecuteAsync(async () =>
+            {
+                var chain =
+                    (await _raiBlocksRpc.GetChainAsync(hash, count));
+                return chain.Blocks;
+            });
+
+            return await policyResult;
+        }
+
         public bool IsAddressValidOfflineAsync(string address)
         {
             try

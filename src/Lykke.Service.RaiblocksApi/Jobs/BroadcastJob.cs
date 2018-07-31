@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
 
 namespace Lykke.Service.RaiblocksApi.Jobs
 {
@@ -58,19 +59,33 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                             txMeta.State = TransactionState.Failed;
                         } else
                         {
-                            txMeta.State = TransactionState.Confirmed;
-                            txMeta.Hash = broadcactResult.hash;
-                            AddressOperationHistoryEntry operationHistoryEntry = new AddressOperationHistoryEntry
+                            var address = txMeta.TransactionType == TransactionType.send
+                                ? txMeta.FromAddress
+                                : txMeta.ToAddress;
+                            
+                            var blockHeigth = await GetBlockHeigthAsync(address, broadcactResult.hash);
+
+                            if (blockHeigth != null)
                             {
-                                OperationId = transactionObservation.OperationId,
-                                Hash = broadcactResult.hash,  
-                                Address = txMeta.FromAddress,
-                                Type = Core.Domain.Entities.Addresses.AddressObservationType.From,
-                                TransactionTimestamp = DateTime.Now
-                            };
-                            txMeta.CompleteTimestamp = operationHistoryEntry.TransactionTimestamp;
-                            txMeta.BlockCount = (await _blockchainService.GetAddressInfoAsync(operationHistoryEntry.Address)).blockCount;
-                            await _historyService.AddAddressOperationHistoryAsync(operationHistoryEntry);
+                                txMeta.State = TransactionState.Confirmed;
+                                txMeta.Hash = broadcactResult.hash;
+                                AddressOperationHistoryEntry operationHistoryEntry = new AddressOperationHistoryEntry
+                                {
+                                    OperationId = transactionObservation.OperationId,
+                                    Hash = broadcactResult.hash,  
+                                    Address = address,
+                                    Type = txMeta.TransactionType == TransactionType.send ? AddressObservationType.From : AddressObservationType.To,
+                                    TransactionTimestamp = DateTime.Now
+                                };
+                                txMeta.CompleteTimestamp = operationHistoryEntry.TransactionTimestamp;
+                                txMeta.BlockCount = blockHeigth.Value;
+                                await _historyService.AddAddressOperationHistoryAsync(operationHistoryEntry);
+                            }
+                            else
+                            {
+                                txMeta.Error = "Unknown block number/height";
+                                txMeta.State = TransactionState.Failed;
+                            }                      
                         }
                         await _transactionService.UpdateTransactionMeta(txMeta);
                     }
@@ -80,6 +95,19 @@ namespace Lykke.Service.RaiblocksApi.Jobs
             } while (continuation != null);
 
             await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}", "Broadcasts finished", DateTime.Now);
+        }
+
+        public async Task<long?> GetBlockHeigthAsync(string address, string hash)
+        {
+            var addressInfo = await _blockchainService.GetAddressInfoAsync(address);
+            if (addressInfo.frontier.Equals(hash))
+            {
+                return addressInfo.blockCount;
+            }
+            else
+            {
+                return (await _blockchainService.GetPreviousBlocksAsync(hash, -1))?.Count;
+            }
         }
     }
 }
