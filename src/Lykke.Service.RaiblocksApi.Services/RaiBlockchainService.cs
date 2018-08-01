@@ -276,6 +276,32 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await policyResult;
         }
 
+        public async Task<Dictionary<string, Dictionary<string, (string source, string amount)>>>
+            GetAccountsPendingAsync(List<string> accounts, long count, bool source)
+        {
+            var policyResult = policy.ExecuteAsync(async () =>
+            {
+                var pendingInfo =
+                    (await _raiBlocksRpc.GetAccountsPendingAsync(accounts, count, source));
+                var result = new Dictionary<string, Dictionary<string, (string source, string amount)>>();
+
+                foreach (var account in pendingInfo.Blocks)
+                {
+                    var rAccount = new Dictionary<string, (string source, string amount)>();
+                    foreach (var block in account.Value)
+                    {
+                        rAccount.Add(block.Key, (block.Value.Source, block.Value.Amount.ToString()));
+                    }
+
+                    result.Add(account.Key, rAccount);
+                }
+
+                return result;
+            });
+
+            return await policyResult;
+        }
+
         public bool IsAddressValidOfflineAsync(string address)
         {
             try

@@ -107,6 +107,46 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                 $"History job {Enum.GetName(typeof(AddressObservationType), type)} finished", DateTime.Now);
         }
 
+        private async Task RefreshPengingHistory()
+        {
+            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}",
+                $"History job {Enum.GetName(typeof(AddressObservationType), AddressObservationType.To)} pending start",
+                DateTime.Now);
+
+            (string continuation, IEnumerable<AddressObservation> items) addressObservations;
+            string continuation = null;
+            do
+            {
+                addressObservations = await _historyService.GetAddressObservationAsync(pageSize, continuation,
+                    Enum.GetName(typeof(AddressObservationType), AddressObservationType.To));
+
+                continuation = addressObservations.continuation;
+
+                var addressesPending = await _blockchainService.GetAccountsPendingAsync(addressObservations.items.Select(x => x.Address).ToList(), -1 ,true);
+
+                foreach (var addressPending in addressesPending)
+                {
+                    foreach (var pandingBlock in addressPending.Value)
+                    {                    
+                        await _historyService.InsertAddressHistoryAsync(new AddressHistoryEntry
+                        {
+                            FromAddress = pandingBlock.Value.source,
+                            ToAddress = addressPending.Key,
+                            Amount = pandingBlock.Value.amount,
+                            Hash = pandingBlock.Key,
+                            Type = AddressObservationType.To,
+                            BlockCount = long.MaxValue,
+                            TransactionType = TransactionType.send
+                        });
+                    }
+                }
+                
+            } while (continuation != null);
+
+            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}",
+                $"History job {Enum.GetName(typeof(AddressObservationType), AddressObservationType.To)} pending finished", DateTime.Now);
+        }
+
         /// <summary>
         /// Job for update history from addresses
         /// </summary>
@@ -116,6 +156,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         {
             await RefreshHistory(AddressObservationType.From);
             await RefreshHistory(AddressObservationType.To);
+            await RefreshPengingHistory();
         }
     }
 }

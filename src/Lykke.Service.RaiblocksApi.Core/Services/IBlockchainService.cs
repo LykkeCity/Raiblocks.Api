@@ -105,6 +105,15 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="count">Count</param>
         /// <returns>List of hashes</returns>
         Task<List<string>> GetPreviousBlocksAsync(string hash, long count);
+        
+        /// <summary>
+        /// Get accounts panding info
+        /// </summary>
+        /// <param name="accounts">List of accounts</param>
+        /// <param name="count">Count</param>
+        /// <param name="source">Is source needed</param>
+        /// <returns>Accounts panding info</returns>
+        Task<Dictionary<string, Dictionary<string, (string source, string amount)>>> GetAccountsPendingAsync(List<string> accounts, long count, bool source);
     }
 
     public enum TransactionType
