@@ -107,7 +107,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
                 $"History job {Enum.GetName(typeof(AddressObservationType), type)} finished", DateTime.Now);
         }
 
-        private async Task RefreshPengingHistory()
+        private async Task RefreshPendingHistory()
         {
             await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}",
                 $"History job {Enum.GetName(typeof(AddressObservationType), AddressObservationType.To)} pending start",
@@ -156,7 +156,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         {
             await RefreshHistory(AddressObservationType.From);
             await RefreshHistory(AddressObservationType.To);
-            await RefreshPengingHistory();
+            await RefreshPendingHistory();
         }
     }
 }
