@@ -5,19 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Services.Models;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
-    public class HistoryService<TAddressHistory, TAddressObservation, TAddressOperation> : IHistoryService<TAddressHistory, TAddressObservation, TAddressOperation>
+    public class
+        HistoryService<TAddressHistory, TAddressObservation, TAddressOperation> : IHistoryService<TAddressHistory,
+            TAddressObservation, TAddressOperation>
         where TAddressHistory : IAddressHistoryEntry
         where TAddressObservation : IAddressObservation
         where TAddressOperation : IAddressOperationHistoryEntry
     {
         private readonly IAddressHistoryEntryRepository<TAddressHistory> _addressHistoryEntryRepository;
         private readonly IAddressObservationRepository<TAddressObservation> _addressObservationRepository;
-        private readonly IAddressOperationHistoryEntryRepository<TAddressOperation> _addressOperationHistoryEntryRepository;
 
-        public HistoryService(IAddressHistoryEntryRepository<TAddressHistory> addressHistoryEntryRepository, IAddressObservationRepository<TAddressObservation> addressObservationRepository, IAddressOperationHistoryEntryRepository<TAddressOperation> addressOperationHistoryEntryRepository)
+        private readonly IAddressOperationHistoryEntryRepository<TAddressOperation>
+            _addressOperationHistoryEntryRepository;
+
+        public HistoryService(IAddressHistoryEntryRepository<TAddressHistory> addressHistoryEntryRepository,
+            IAddressObservationRepository<TAddressObservation> addressObservationRepository,
+            IAddressOperationHistoryEntryRepository<TAddressOperation> addressOperationHistoryEntryRepository)
         {
             _addressHistoryEntryRepository = addressHistoryEntryRepository;
             _addressObservationRepository = addressObservationRepository;
@@ -51,10 +58,10 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="continuation">continuation data</param>
         /// <param name="partitionKey">partition key for azure storage</param>
         /// <returns>Address history</returns>
-        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetHistoryAsync(int take, string continuation, string partitionKey = null)
+        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetHistoryAsync(int take,
+            string continuation, string partitionKey = null)
         {
             return await _addressHistoryEntryRepository.GetAsync(take, continuation, partitionKey);
-
         }
 
         /// <summary>
@@ -65,7 +72,8 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="address">Address</param>
         /// <param name="afterHash">Block hash</param>
         /// <returns>Address history</returns>
-        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take, string partitionKey, string address, string afterHash, string continuation = null)
+        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressHistoryAsync(int take,
+            string partitionKey, string address, string afterHash, string continuation = null)
         {
             if (address != null && partitionKey != null)
             {
@@ -74,18 +82,19 @@ namespace Lykke.Service.RaiblocksApi.Services
                     var afterRecord = await _addressHistoryEntryRepository.GetAsync(afterHash, partitionKey);
                     var afterBlockCount = afterRecord.BlockCount;
 
-                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address, afterBlockCount, continuation);
+                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address,
+                        afterBlockCount, continuation);
                 }
                 else
                 {
-                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address, continuation: continuation);
+                    return await _addressHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address,
+                        continuation: continuation);
                 }
             }
             else
             {
                 throw new ArgumentException();
             }
-
         }
 
         /// <summary>
@@ -95,7 +104,8 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="continuation">continuation data</param>
         /// <param name="partitionKey">partition key for azure storage</param>
         /// <returns>continuation data and observerd addresses</returns>
-        public async Task<(string continuation, IEnumerable<TAddressObservation> items)> GetAddressObservationAsync(int take, string continuation, string partitionKey = null)
+        public async Task<(string continuation, IEnumerable<TAddressObservation> items)> GetAddressObservationAsync(
+            int take, string continuation, string partitionKey = null)
         {
             return await _addressObservationRepository.GetAsync(take, continuation, partitionKey);
         }
@@ -127,7 +137,8 @@ namespace Lykke.Service.RaiblocksApi.Services
         /// <param name="partitionKey"></param>
         /// <param name="address"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<TAddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey, string address)
+        public async Task<IEnumerable<TAddressOperation>> GetAddressOperationHistoryAsync(int take, string partitionKey,
+            string address)
         {
             return await _addressOperationHistoryEntryRepository.GetByAddressAsync(take, partitionKey, address);
         }
@@ -140,6 +151,17 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<bool> AddAddressOperationHistoryAsync(TAddressOperation operationHistoryEntry)
         {
             return await _addressOperationHistoryEntryRepository.CreateIfNotExistsAsync(operationHistoryEntry);
+        }
+
+        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressPendingHistoryAsync(int take, string continuation = null)
+        {
+            return await _addressHistoryEntryRepository.GetByBlockAsync(take,
+                Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), long.MaxValue, continuation);
+        }
+
+        public async Task<bool> RemoveAddressHistoryEntryAsync(TAddressHistory addressObservation)
+        {
+            return await _addressHistoryEntryRepository.DeleteIfExistAsync(addressObservation);
         }
     }
 }

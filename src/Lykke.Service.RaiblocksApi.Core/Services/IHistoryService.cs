@@ -79,5 +79,9 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         /// <param name="operationHistoryEntry">Operation history entry</param>
         /// <returns>true if created, false if existed before</returns>
         Task<bool> AddAddressOperationHistoryAsync(TAddressOperation operationHistoryEntry);
+        
+        Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressPendingHistoryAsync(int take, string continuation = null);
+
+        Task<bool> RemoveAddressHistoryEntryAsync(TAddressHistory addressObservation);
     }
 }

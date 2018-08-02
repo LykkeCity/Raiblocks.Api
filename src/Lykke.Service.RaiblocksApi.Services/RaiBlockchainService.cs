@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Numerics;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions;
 using Lykke.Service.RaiblocksApi.Services.Models;
 
@@ -276,24 +277,33 @@ namespace Lykke.Service.RaiblocksApi.Services
             return await policyResult;
         }
 
-        public async Task<Dictionary<string, Dictionary<string, (string source, string amount)>>>
+        public async Task<List<IAddressHistoryEntry>>
             GetAccountsPendingAsync(List<string> accounts, long count, bool source)
         {
             var policyResult = policy.ExecuteAsync(async () =>
             {
                 var pendingInfo =
                     (await _raiBlocksRpc.GetAccountsPendingAsync(accounts, count, source));
-                var result = new Dictionary<string, Dictionary<string, (string source, string amount)>>();
+                var result = new List<IAddressHistoryEntry>();
 
                 foreach (var account in pendingInfo.Blocks)
                 {
-                    var rAccount = new Dictionary<string, (string source, string amount)>();
-                    foreach (var block in account.Value)
+                    if (account.Value != null)
                     {
-                        rAccount.Add(block.Key, (block.Value.Source, block.Value.Amount.ToString()));
+                        foreach (var block in account.Value)
+                        {
+                            result.Add(new AddressHistoryEntry
+                            {
+                                FromAddress = block.Value.Source,
+                                ToAddress = account.Key,
+                                Amount = block.Value.Amount.ToString(),
+                                Hash = block.Key,
+                                Type = AddressObservationType.To,
+                                BlockCount = long.MaxValue,
+                                TransactionType = TransactionType.send
+                            });
+                        }
                     }
-
-                    result.Add(account.Key, rAccount);
                 }
 
                 return result;
