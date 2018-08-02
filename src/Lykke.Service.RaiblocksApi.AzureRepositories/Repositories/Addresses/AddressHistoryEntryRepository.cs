@@ -56,6 +56,14 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
             return (items.PagingInfo.Encode(), items);
         }
 
+        /// <summary>
+        /// Return history entries by block count
+        /// </summary>
+        /// <param name="take">Amount of the returned history entry</param>
+        /// <param name="partitionKey">PartitionKey for azure table storage</param>
+        /// <param name="blockNum">Block count</param>
+        /// <param name="continuation">continuation data</param>
+        /// <returns>History entries by block count</returns>
         public async Task<(string continuation, IEnumerable<AddressHistoryEntry> items)> GetByBlockAsync(int take, string partitionKey, long blockNum, string continuation)
         {
             var page = new PagingInfo { ElementCount = take };
