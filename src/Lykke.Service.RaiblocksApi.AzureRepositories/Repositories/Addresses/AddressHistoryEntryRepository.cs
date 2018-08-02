@@ -13,11 +13,9 @@ using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
 {
-    public class AddressHistoryEntryRepository : AzureRepository<AddressHistoryEntry>,
-        IAddressHistoryEntryRepository<AddressHistoryEntry>
+    public class AddressHistoryEntryRepository : AzureRepository<AddressHistoryEntry>, IAddressHistoryEntryRepository<AddressHistoryEntry>
     {
-        public AddressHistoryEntryRepository(IReloadingManager<string> connectionStringManager, ILog log) : base(
-            connectionStringManager, log)
+        public AddressHistoryEntryRepository(IReloadingManager<string> connectionStringManager, ILog log) : base(connectionStringManager, log)
         {
         }
 
@@ -34,49 +32,41 @@ namespace Lykke.Service.RaiblocksApi.AzureRepositories.Repositories.Addresses
         /// <param name="address">Address</param>
         /// <param name="afterBlockCount">Block hash</param>
         /// <returns>History entries for address after specific hash</returns>
-        public async Task<(string continuation, IEnumerable<AddressHistoryEntry> items)> GetByAddressAsync(int take,
-            string partitionKey, string address, long afterBlockCount = 0, string continuation = null)
+        public async Task<(string continuation, IEnumerable<AddressHistoryEntry> items)> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0, string continuation = null)
         {
-            var addressFieldName =
-                partitionKey == Enum.GetName(typeof(AddressObservationType), AddressObservationType.From)
-                    ? nameof(AddressHistoryEntry.FromAddress)
-                    : nameof(AddressHistoryEntry.ToAddress);
+            var addressFieldName = partitionKey == Enum.GetName(typeof(AddressObservationType), AddressObservationType.From)
+                ? nameof(AddressHistoryEntry.FromAddress) : nameof(AddressHistoryEntry.ToAddress);
 
-            var page = new PagingInfo {ElementCount = take};
+            var page = new PagingInfo { ElementCount = take };
 
             page.Decode(continuation);
 
             var query = new TableQuery<AddressHistoryEntry>()
-                .Where(TableQuery.CombineFilters(
-                    TableQuery.GenerateFilterCondition(nameof(AddressHistoryEntry.PartitionKey), QueryComparisons.Equal,
-                        partitionKey),
-                    TableOperators.And,
-                    TableQuery.CombineFilters(
-                        TableQuery.GenerateFilterConditionForLong(nameof(AddressHistoryEntry.BlockCount),
-                            QueryComparisons.GreaterThan, afterBlockCount),
-                        TableOperators.And,
-                        TableQuery.GenerateFilterCondition(addressFieldName, QueryComparisons.Equal, address)
-                    )));
+                 .Where(TableQuery.CombineFilters(
+                     TableQuery.GenerateFilterCondition(nameof(AddressHistoryEntry.PartitionKey), QueryComparisons.Equal, partitionKey),
+                     TableOperators.And,
+                     TableQuery.CombineFilters(
+                         TableQuery.GenerateFilterConditionForLong(nameof(AddressHistoryEntry.BlockCount), QueryComparisons.GreaterThan, afterBlockCount),
+                         TableOperators.And,
+                         TableQuery.GenerateFilterCondition(addressFieldName, QueryComparisons.Equal, address)
+                     )));
 
             var items = await _tableStorage.ExecuteQueryWithPaginationAsync(query, page);
 
             return (items.PagingInfo.Encode(), items);
         }
 
-        public async Task<(string continuation, IEnumerable<AddressHistoryEntry> items)> GetByBlockAsync(int take,
-            string partitionKey, long blockNum, string continuation)
+        public async Task<(string continuation, IEnumerable<AddressHistoryEntry> items)> GetByBlockAsync(int take, string partitionKey, long blockNum, string continuation)
         {
-            var page = new PagingInfo {ElementCount = take};
+            var page = new PagingInfo { ElementCount = take };
 
             page.Decode(continuation);
 
             var query = new TableQuery<AddressHistoryEntry>()
                 .Where(TableQuery.CombineFilters(
-                    TableQuery.GenerateFilterCondition(nameof(AddressHistoryEntry.PartitionKey), QueryComparisons.Equal,
-                        partitionKey),
+                    TableQuery.GenerateFilterCondition(nameof(AddressHistoryEntry.PartitionKey), QueryComparisons.Equal, partitionKey),
                     TableOperators.And,
-                    TableQuery.GenerateFilterConditionForLong(nameof(AddressHistoryEntry.BlockCount),
-                        QueryComparisons.Equal, blockNum)));
+                    TableQuery.GenerateFilterConditionForLong(nameof(AddressHistoryEntry.BlockCount), QueryComparisons.Equal, blockNum)));
 
             var items = await _tableStorage.ExecuteQueryWithPaginationAsync(query, page);
 

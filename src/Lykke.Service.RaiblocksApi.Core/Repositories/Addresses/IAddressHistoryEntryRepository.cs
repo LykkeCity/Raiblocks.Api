@@ -17,10 +17,8 @@ namespace Lykke.Service.RaiblocksApi.Core.Repositories.Addresses
         /// <param name="address">Address</param>
         /// <param name="afterBlockCount">Block hash</param>
         /// <returns>History entries for address after specific hash</returns>
-        Task<(string continuation, IEnumerable<THistoryEntry> items)> GetByAddressAsync(int take, string partitionKey,
-            string address, long afterBlockCount = 0, string continuation = null);
+        Task<(string continuation, IEnumerable<THistoryEntry> items)> GetByAddressAsync(int take, string partitionKey, string address, long afterBlockCount = 0, string continuation = null);
 
-        Task<(string continuation, IEnumerable<THistoryEntry> items)> GetByBlockAsync(int take,
-            string partitionKey, long blockNum, string continuation);
+        Task<(string continuation, IEnumerable<THistoryEntry> items)> GetByBlockAsync(int take, string partitionKey, long blockNum, string continuation);
     }
 }
