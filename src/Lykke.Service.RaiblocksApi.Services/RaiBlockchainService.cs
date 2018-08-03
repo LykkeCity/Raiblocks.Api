@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Numerics;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Addresses;
 using Lykke.Service.RaiblocksApi.Core.Domain.Entities.Transactions;
 using Lykke.Service.RaiblocksApi.Services.Models;
 
@@ -271,6 +272,41 @@ namespace Lykke.Service.RaiblocksApi.Services
                 var chain =
                     (await _raiBlocksRpc.GetChainAsync(hash, count));
                 return chain.Blocks;
+            });
+
+            return await policyResult;
+        }
+
+        public async Task<List<IAddressHistoryEntry>>
+            GetAccountsPendingAsync(List<string> accounts, long count, bool source)
+        {
+            var policyResult = policy.ExecuteAsync(async () =>
+            {
+                var pendingInfo =
+                    (await _raiBlocksRpc.GetAccountsPendingAsync(accounts, count, source));
+                var result = new List<IAddressHistoryEntry>();
+
+                foreach (var account in pendingInfo.Blocks)
+                {
+                    if (account.Value != null)
+                    {
+                        foreach (var block in account.Value)
+                        {
+                            result.Add(new AddressHistoryEntry
+                            {
+                                FromAddress = block.Value.Source,
+                                ToAddress = account.Key,
+                                Amount = block.Value.Amount.ToString(),
+                                Hash = block.Key,
+                                Type = AddressObservationType.To,
+                                BlockCount = long.MaxValue,
+                                TransactionType = TransactionType.send
+                            });
+                        }
+                    }
+                }
+
+                return result;
             });
 
             return await policyResult;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.RaiblocksApi.Services.Models;
 
 namespace Lykke.Service.RaiblocksApi.Services
 {
@@ -140,6 +141,27 @@ namespace Lykke.Service.RaiblocksApi.Services
         public async Task<bool> AddAddressOperationHistoryAsync(TAddressOperation operationHistoryEntry)
         {
             return await _addressOperationHistoryEntryRepository.CreateIfNotExistsAsync(operationHistoryEntry);
+        }
+
+        /// <summary>
+        /// Get pending blocks from history
+        /// </summary>
+        /// <param name="take">Amount of history entries</param>
+        /// <param name="continuation">continuation data</param>
+        /// <returns></returns>
+        public async Task<(string continuation, IEnumerable<TAddressHistory> items)> GetAddressPendingHistoryAsync(int take, string continuation = null)
+        {
+            return await _addressHistoryEntryRepository.GetByBlockAsync(take, Enum.GetName(typeof(AddressObservationType), AddressObservationType.To), long.MaxValue, continuation);
+        }
+
+        /// <summary>
+        /// Remove history entry
+        /// </summary>
+        /// <param name="addressHistoryEntry">Address history entry</param>
+        /// <returns>true if removed, false if not exist</returns>
+        public async Task<bool> RemoveAddressHistoryEntryAsync(TAddressHistory addressHistoryEntry)
+        {
+            return await _addressHistoryEntryRepository.DeleteIfExistAsync(addressHistoryEntry);
         }
     }
 }

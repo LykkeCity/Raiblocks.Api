@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Lykke.Service.RaiblocksApi.Jobs
@@ -108,6 +109,72 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         }
 
         /// <summary>
+        /// Refresh pending blocks in history
+        /// </summary>
+        /// <returns><see cref="Task"/></returns>
+        private async Task RefreshPendingHistory()
+        {
+            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}",
+                $"History job {Enum.GetName(typeof(AddressObservationType), AddressObservationType.To)} pending start",
+                DateTime.Now);
+
+            (string continuation, IEnumerable<AddressObservation> items) addressObservations;
+            string continuation = null;
+            do
+            {
+                addressObservations = await _historyService.GetAddressObservationAsync(pageSize, continuation,
+                    Enum.GetName(typeof(AddressObservationType), AddressObservationType.To));
+
+                continuation = addressObservations.continuation;
+
+                var addressesPending = await _blockchainService.GetAccountsPendingAsync(addressObservations.items.Select(x => x.Address).ToList(), -1 ,true);
+
+                foreach (var addressPending in addressesPending)
+                {
+                    await _historyService.InsertAddressHistoryAsync(new AddressHistoryEntry
+                    {
+                        FromAddress = addressPending.FromAddress,
+                        ToAddress = addressPending.ToAddress,
+                        Amount = addressPending.Amount,
+                        Hash = addressPending.Hash,
+                        Type = AddressObservationType.To,
+                        BlockCount = long.MaxValue,
+                        TransactionType = TransactionType.send                        
+                    });
+                    
+                    await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}",
+                        $"Panding block {addressPending.Hash} added to history", DateTime.Now);
+                }
+                
+            } while (continuation != null);
+            
+            (string continuation, IEnumerable<AddressHistoryEntry> items) pendingHashes;
+            do
+            {
+                pendingHashes = await _historyService.GetAddressPendingHistoryAsync(pageSize, continuation);
+
+                continuation = addressObservations.continuation;
+
+                var addressesPending = await _blockchainService.GetAccountsPendingAsync(pendingHashes.items.Select(x => x.ToAddress).ToList(), -1 ,true);
+
+                var received =
+                    pendingHashes.items.Where(x => !addressesPending.Any(y => y.Hash.Equals(x.Hash)));
+
+                foreach (var item in received)
+                {
+                    await _historyService.RemoveAddressHistoryEntryAsync(item);                  
+                                
+                    await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}",
+                        $"Panding block {item.Hash} removed from history", DateTime.Now);
+                }
+
+            } while (continuation != null);
+            
+            await _log.WriteInfoAsync(nameof(HistoryRefreshJob), $"Env: {Program.EnvInfo}",
+                $"History job {Enum.GetName(typeof(AddressObservationType), AddressObservationType.To)} pending finished", DateTime.Now);
+        }
+
+        /// <summary>
         /// Job for update history from addresses
         /// </summary>
         /// <returns></returns>
@@ -116,6 +183,7 @@ namespace Lykke.Service.RaiblocksApi.Jobs
         {
             await RefreshHistory(AddressObservationType.From);
             await RefreshHistory(AddressObservationType.To);
+            await RefreshPendingHistory();
         }
     }
 }
