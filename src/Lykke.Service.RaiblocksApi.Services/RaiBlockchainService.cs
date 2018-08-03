@@ -69,18 +69,15 @@ namespace Lykke.Service.RaiblocksApi.Services
 
                 return await Task.Run(async () =>
                 {
-                    var txContext = JObject.FromObject(new BlockCreate
+                    var txContext = JObject.FromObject(new UniversalBlockCreate()
                     {
-                        Type = BlockType.send,
                         AccountNumber = raiAddress,
-                        Destination = raiDestination,
-                        Balance = accountInfo.Balance,
-                        Amount = new RaiUnits.RaiRaw(amount),
-                        Previous = accountInfo.Frontier
+                        RepresentativeNumber = accountInfo.Representative,
+                        Link = raiDestination,
+                        Balance = accountInfo.Balance - new RaiUnits.RaiRaw(amount),
+                        Previous = accountInfo.Frontier,
+                        Work = (await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier))?.Work
                     });
-                    var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
-
-                    txContext.Add("work", work.Work);
 
                     return txContext.ToString();
                 });
@@ -94,10 +91,16 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             var policyResult = policy.ExecuteAsync(async () =>
             {
-                var retrieveBlock = await _raiBlocksRpc.GetRetrieveBlockAsync(sendTransactionHash);
+                var account = await _raiBlocksRpc.GetBlockAccountAsync(sendTransactionHash);
 
-                var destination = retrieveBlock?.Contents?.Destination;
+                var source = account.Aaccount;
+                var raiSource = new RaiAddress(source);
+                
+                var accountHistory = (await _raiBlocksRpc.GetAccountHistoryAsync(raiSource, 1, sendTransactionHash)).Entries.First();
+
+                var destination = accountHistory.RepresentativeBlock;
                 var raiDestination = new RaiAddress(destination);
+                
                 var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiDestination);
 
                 if (accountInfo.Error != null &&
@@ -105,17 +108,16 @@ namespace Lykke.Service.RaiblocksApi.Services
                 {
                     return await Task.Run(async () =>
                     {
-                        var txContext = JObject.FromObject(new BlockCreate
+                        var txContext = JObject.FromObject(new UniversalBlockCreate
                         {
-                            Type = BlockType.open,
                             AccountNumber = destination,
-                            RepresentativeNumber = destination,
-                            Source = sendTransactionHash
+                            RepresentativeNumber =  destination,
+                            Link = sendTransactionHash,
+                            Balance = accountHistory.Amount,
+                            Previous = "0",
+                            Work = ( await _raiBlocksRpc.GetWorkAsync(
+                                (await _raiBlocksRpc.GetAccountKeyAsync(raiDestination)).Key)).Work
                         });
-                        var work = await _raiBlocksRpc.GetWorkAsync(
-                            (await _raiBlocksRpc.GetAccountKeyAsync(raiDestination)).Key);
-
-                        txContext.Add("work", work.Work);
 
                         return txContext.ToString();
                     });
@@ -124,16 +126,16 @@ namespace Lykke.Service.RaiblocksApi.Services
                 {
                     return await Task.Run(async () =>
                     {
-                        var txContext = JObject.FromObject(new BlockCreate
+                        var txContext = JObject.FromObject(new UniversalBlockCreate
                         {
-                            Type = BlockType.receive,
                             AccountNumber = destination,
-                            Source = sendTransactionHash,
-                            Previous = accountInfo.Frontier
+                            RepresentativeNumber =  accountInfo.Representative,
+                            Link = sendTransactionHash,
+                            Balance = accountInfo.Balance + accountHistory.Amount,
+                            Previous = accountInfo.Frontier,
+                            Work = (await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier)).Work
+                            
                         });
-                        var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
-
-                        txContext.Add("work", work.Work);
 
                         return txContext.ToString();
                     });
