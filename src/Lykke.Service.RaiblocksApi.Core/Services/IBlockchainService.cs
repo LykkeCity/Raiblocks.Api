@@ -56,6 +56,13 @@ namespace Lykke.Service.RaiblocksApi.Core.Services
         Task<string> CreateUnsignReceiveTransactionAsync(string sendTransactionHash);
 
         /// <summary>
+        /// Build unsined receive transaction
+        /// </summary>
+        /// <param name="txMeta">Transaction meta from node</param>
+        /// <returns>Unsined transaction</returns>
+        Task<string> CreateUnsignReceiveTransactionAsync(ITransactionMeta txMeta);
+
+        /// <summary>
         /// Get balance for address
         /// </summary>
         /// <param name="address">Address</param>
