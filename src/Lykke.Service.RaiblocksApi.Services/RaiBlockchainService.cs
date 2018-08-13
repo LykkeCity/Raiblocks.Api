@@ -65,22 +65,19 @@ namespace Lykke.Service.RaiblocksApi.Services
             {
                 var raiAddress = new RaiAddress(address);
                 var raiDestination = new RaiAddress(destination);
-                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiAddress);
+                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiAddress, true);
 
                 return await Task.Run(async () =>
                 {
-                    var txContext = JObject.FromObject(new BlockCreate
+                    var txContext = JObject.FromObject(new UniversalBlockCreate()
                     {
-                        Type = BlockType.send,
                         AccountNumber = raiAddress,
-                        Destination = raiDestination,
-                        Balance = accountInfo.Balance,
-                        Amount = new RaiUnits.RaiRaw(amount),
-                        Previous = accountInfo.Frontier
+                        RepresentativeNumber = accountInfo.Representative,
+                        Link = raiDestination,
+                        Balance = accountInfo.Balance - new RaiUnits.RaiRaw(amount),
+                        Previous = accountInfo.Frontier,
+                        Work = (await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier))?.Work
                     });
-                    var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
-
-                    txContext.Add("work", work.Work);
 
                     return txContext.ToString();
                 });
@@ -94,28 +91,36 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             var policyResult = policy.ExecuteAsync(async () =>
             {
-                var retrieveBlock = await _raiBlocksRpc.GetRetrieveBlockAsync(sendTransactionHash);
+                var txMeta = await GetTransactionMetaAsync(sendTransactionHash);
+                return await CreateUnsignReceiveTransactionAsync(txMeta);
+            });
 
-                var destination = retrieveBlock?.Contents?.Destination;
-                var raiDestination = new RaiAddress(destination);
-                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiDestination);
+            return await policyResult;
+        }
+
+        public async Task<string> CreateUnsignReceiveTransactionAsync(ITransactionMeta txMeta)
+        {
+            var policyResult = policy.ExecuteAsync(async () =>
+            {                
+                var raiDestination = new RaiAddress(txMeta.ToAddress);
+                
+                var accountInfo = await _raiBlocksRpc.GetAccountInformationAsync(raiDestination, true);
 
                 if (accountInfo.Error != null &&
                     accountInfo.Error.Equals("Account not found", StringComparison.InvariantCultureIgnoreCase))
                 {
                     return await Task.Run(async () =>
                     {
-                        var txContext = JObject.FromObject(new BlockCreate
+                        var txContext = JObject.FromObject(new UniversalBlockCreate
                         {
-                            Type = BlockType.open,
-                            AccountNumber = destination,
-                            RepresentativeNumber = destination,
-                            Source = sendTransactionHash
+                            AccountNumber = txMeta.ToAddress,
+                            RepresentativeNumber =  txMeta.ToAddress,
+                            Link = txMeta.Hash,
+                            Balance = new RaiUnits.RaiRaw(txMeta.Amount),
+                            Previous = "0",
+                            Work = ( await _raiBlocksRpc.GetWorkAsync(
+                                (await _raiBlocksRpc.GetAccountKeyAsync(raiDestination)).Key)).Work
                         });
-                        var work = await _raiBlocksRpc.GetWorkAsync(
-                            (await _raiBlocksRpc.GetAccountKeyAsync(raiDestination)).Key);
-
-                        txContext.Add("work", work.Work);
 
                         return txContext.ToString();
                     });
@@ -124,16 +129,16 @@ namespace Lykke.Service.RaiblocksApi.Services
                 {
                     return await Task.Run(async () =>
                     {
-                        var txContext = JObject.FromObject(new BlockCreate
+                        var txContext = JObject.FromObject(new UniversalBlockCreate
                         {
-                            Type = BlockType.receive,
-                            AccountNumber = destination,
-                            Source = sendTransactionHash,
-                            Previous = accountInfo.Frontier
+                            AccountNumber = txMeta.ToAddress,
+                            RepresentativeNumber =  accountInfo.Representative,
+                            Link = txMeta.Hash,
+                            Balance = accountInfo.Balance + new RaiUnits.RaiRaw(txMeta.Amount),
+                            Previous = accountInfo.Frontier,
+                            Work = (await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier)).Work
+                            
                         });
-                        var work = await _raiBlocksRpc.GetWorkAsync(accountInfo.Frontier);
-
-                        txContext.Add("work", work.Work);
 
                         return txContext.ToString();
                     });
@@ -142,7 +147,7 @@ namespace Lykke.Service.RaiblocksApi.Services
 
             return await policyResult;
         }
-
+        
         public async Task<Dictionary<string, string>> GetAddressBalancesAsync(IEnumerable<string> balanceObservation)
         {
             var policyResult = policy.ExecuteAsync(async () =>
@@ -216,11 +221,11 @@ namespace Lykke.Service.RaiblocksApi.Services
                 {
                     if (x.Type == BlockType.send)
                     {
-                        return (address, x.RepresentativeBlock, x.Amount.Value, x.Frontier, TransactionType.send);
+                        return (address, x.Account, x.Amount.Value, x.Frontier, TransactionType.send);
                     }
                     else if (x.Type == BlockType.receive)
                     {
-                        return (x.RepresentativeBlock, address, x.Amount.Value, x.Frontier, TransactionType.receive);
+                        return (x.Account, address, x.Amount.Value, x.Frontier, TransactionType.receive);
                     }
                     else
                     {
@@ -247,18 +252,24 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             var policyResult = policy.ExecuteAsync(async () =>
             {
-                var retrieveBlock =
-                    (await _raiBlocksRpc.GetRetrieveBlocksInfoAsync(new List<string> {hash})).Blocks[hash];
+                var account = (await _raiBlocksRpc.GetBlockAccountAsync(hash)).Account;
+                
+                var raiSource = new RaiAddress(account);
+                
+                var accountHistory = (await _raiBlocksRpc.GetAccountHistoryAsync(raiSource, 1, hash)).Entries.First();
+                
+                var destination = accountHistory.Account;
+                                
                 return new TransactionMeta
                 {
-                    Amount = retrieveBlock.Amount,
+                    Amount = accountHistory.Amount.ToString(),
                     AssetId = _assetService.AssetId,
-                    FromAddress = retrieveBlock.BlockAccount,
-                    ToAddress = retrieveBlock.Contents.Destination,
+                    FromAddress = account,
+                    ToAddress = destination,
                     Hash = hash,
                     IncludeFee = false,
                     TransactionType =
-                        retrieveBlock.Contents.Type == BlockType.send ? TransactionType.send : TransactionType.receive
+                        accountHistory.Type == BlockType.send ? TransactionType.send : TransactionType.receive
                 };
             });
 
@@ -282,26 +293,30 @@ namespace Lykke.Service.RaiblocksApi.Services
         {
             var policyResult = policy.ExecuteAsync(async () =>
             {
-                var pendingInfo =
-                    (await _raiBlocksRpc.GetAccountsPendingAsync(accounts, count, source));
                 var result = new List<IAddressHistoryEntry>();
-
-                foreach (var account in pendingInfo.Blocks)
+                if (accounts.Count != 0)
                 {
-                    if (account.Value != null)
+                    var pendingInfo =
+                        (await _raiBlocksRpc.GetAccountsPendingAsync(accounts, count, source));
+
+
+                    foreach (var account in pendingInfo.Blocks)
                     {
-                        foreach (var block in account.Value)
+                        if (account.Value != null)
                         {
-                            result.Add(new AddressHistoryEntry
+                            foreach (var block in account.Value)
                             {
-                                FromAddress = block.Value.Source,
-                                ToAddress = account.Key,
-                                Amount = block.Value.Amount.ToString(),
-                                Hash = block.Key,
-                                Type = AddressObservationType.To,
-                                BlockCount = long.MaxValue,
-                                TransactionType = TransactionType.send
-                            });
+                                result.Add(new AddressHistoryEntry
+                                {
+                                    FromAddress = block.Value.Source,
+                                    ToAddress = account.Key,
+                                    Amount = block.Value.Amount.ToString(),
+                                    Hash = block.Key,
+                                    Type = AddressObservationType.To,
+                                    BlockCount = long.MaxValue,
+                                    TransactionType = TransactionType.send
+                                });
+                            }
                         }
                     }
                 }

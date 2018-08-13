@@ -193,7 +193,7 @@ namespace Lykke.Service.RaiblocksApi.Services
                     JObject.FromObject(transactionMeta).ToString(), $"Create new txMeta, with id: {operationId}");
 
                 var unsignTransaction =
-                    await _blockchainService.CreateUnsignReceiveTransactionAsync(sendTransactionHash);
+                    await _blockchainService.CreateUnsignReceiveTransactionAsync(nodetxMeta);
 
                 transactionBody = new TTransactionBody
                 {
